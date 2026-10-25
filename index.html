@@ -127,6 +127,7 @@ textarea.inp{resize:none;height:76px;line-height:1.5}
 .edit .tag[data-i]{animation:wig .5s ease-in-out infinite alternate}.tag .tx2{display:none}.edit .tag[data-i] .tx2{display:inline-grid;place-items:center;width:34px;height:34px;margin:-8px -10px -8px 0;font-size:18px;color:var(--soft);border-radius:50%}.edit .tag[data-i] .tx2:active{background:rgba(0,0,0,.06)}.tag.nope{animation:nope .35s ease!important}@keyframes nope{25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
 @keyframes wig{from{transform:rotate(-1.2deg)}to{transform:rotate(1.2deg)}}
 .edit .item .ck{display:none}.item .x.mx{display:none}.edit .item .x.mx{display:grid}
+#mAdd{z-index:30}.mrow{display:flex;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px dashed rgba(138,123,108,.25)}.mrow .tx{flex:1;cursor:pointer}.mrow svg{flex:none;width:20px;height:20px}
 .lk{font:inherit;font-size:13px;background:none;border:0;color:var(--soft);text-decoration:underline dotted;cursor:pointer;padding:6px 2px}
 .bar{position:absolute;top:0;left:0;right:0;z-index:5;display:flex;justify-content:space-between;align-items:center;padding:calc(env(safe-area-inset-top) + 12px) 18px 0}
 .screen{padding-top:calc(env(safe-area-inset-top) + 62px)}
@@ -211,7 +212,7 @@ body{-webkit-user-select:none;user-select:none}textarea,input{-webkit-user-selec
   <div class="mini" id="mini"></div>
   <h2>今天必须做的事 <span class="lite">可选 · 点一下加上</span> <button class="lk" data-edit="tags">整理</button></h2>
   <div class="tags" id="tags"></div>
-  <h2>多巴胺菜单 <span><button class="lk" data-edit="menuA">整理</button> <button class="btn ghost" data-shuffle>换一换 ↻</button></span></h2>
+  <h2>多巴胺菜单 <span><button class="lk" data-mymenu>我的菜单</button> <button class="btn ghost" data-shuffle>换一换 ↻</button></span></h2>
   <div class="menu" id="menuA"></div>
   <button class="btn ghost" data-addmine style="margin-top:4px;align-self:flex-start">＋ 加一件自己的小事</button>
   <p class="foot">晚上再来记一下今天 🌙</p>
@@ -294,11 +295,18 @@ body{-webkit-user-select:none;user-select:none}textarea,input{-webkit-user-selec
  <div class="row"><button class="btn ghost" data-close>算了</button><button class="btn" id="addOk">存成小标签</button></div>
 </div></div>
 <div class="mask" id="mMenu"><div class="sheet">
- <h3 style="display:flex;justify-content:space-between;align-items:center">充充电 · 多巴胺菜单 <span><button class="lk" data-edit="menuB">整理</button> <button class="btn ghost" data-shuffle>换一换 ↻</button></span></h3>
+ <h3 style="display:flex;justify-content:space-between;align-items:center">充充电 · 多巴胺菜单 <span><button class="lk" data-mymenu>我的菜单</button> <button class="btn ghost" data-shuffle>换一换 ↻</button></span></h3>
  <p class="sub" style="margin:-4px 0 10px">累了、心情低的时候，挑一件做做看</p>
  <div class="menu" id="menuB"></div>
  <button class="btn ghost" data-addmine style="margin-top:4px">＋ 加一件自己的小事</button>
  <div class="row"><button class="btn" data-close>好啦</button></div>
+</div></div>
+<div class="mask" id="mMine"><div class="sheet" style="display:flex;flex-direction:column">
+ <h3 style="display:flex;justify-content:space-between;align-items:center">我的菜单 <button class="lk" id="mineRestore">恢复默认</button></h3>
+ <p class="sub" style="margin:-4px 0 6px">点名字能改，留下你喜欢的小事就好</p>
+ <div id="mineAsk" class="sub" hidden style="margin:2px 0 8px">把默认的小事加回来？你自己加的都会留着。 <button class="lk" id="mineYes">加回来</button> <button class="lk" id="mineNo">先不用</button></div>
+ <div id="mineList" style="flex:1;min-height:0;overflow:auto;overscroll-behavior:contain"></div>
+ <div class="row"><button class="btn ghost" id="mineAdd">＋ 加一件</button><button class="btn" data-close>好啦</button></div>
 </div></div>
 <div class="mask" id="mWeek"><div class="sheet" style="text-align:center"><canvas id="wcard" style="display:none"></canvas><canvas id="wcardB" style="display:none"></canvas><div class="wflip" id="wflip"><div class="wfin"><div class="wface wf"><img id="wcardImg" alt="这周的电量卡片"></div><div class="wface wb"><img id="wcardImgB" alt="这周写下的话"><button class="wself" id="wself" aria-label="给这周的自己写一句"></button></div></div></div><p class="tiny" id="wfhint" style="margin-top:8px">点卡片翻面 · 长按能存</p><div class="row"><button class="btn ghost" data-close>好啦</button><button class="btn" id="wsave">存图 / 分享</button></div></div></div>
 <div class="mask" id="mSelf"><div class="sheet"><h3 style="margin:4px 0 10px">给这周的自己</h3><input class="inp" id="selfIn" maxlength="30" placeholder="一句话就好，比如：你已经很努力啦"><div class="selfc" id="selfC">0/30</div><div class="row"><button class="btn ghost" id="selfDel">删掉</button><button class="btn" id="selfOk">好啦</button></div></div></div>
@@ -316,9 +324,9 @@ const THEMES={1:['#f5eee2','#4a3f35','#8a7b6c','#aac8e6','#d4e4f3','#fffaf1'],2:
 const MSG={1:'今天允许自己什么都不做，舒服最重要',2:'慢慢来，挑一件小事就很棒了',3:'状态还不错，给自己安排点喜欢的事吧',4:'今天电量挺足，想做什么就去做',5:'哇塞，今天看起来活力满满！'};
 const ICONS=['sun','heart','note','cloud','leaf','star','cup','moon'];
 const ITEMS=[
-['喝一杯温水',0,'cup'],['闭眼深呼吸 5 次',0,'cloud'],['伸个大大的懒腰',0,'sun'],['听一首喜欢的歌',0,'note'],['给植物或窗外看一眼',0,'leaf'],['抱一抱枕头或玩偶',0,'heart'],['翻翻相册里的开心照片',0,'star'],['擦一点护手霜',0,'heart'],['吃一颗糖或一块小饼干',0,'cup'],['把被子拉到下巴',0,'moon'],['给喜欢的人发个表情包',0,'heart'],['打开窗吹 2 分钟风',0,'cloud'],
-['洗个热水澡',1,'cloud'],['泡一杯热饮慢慢喝',1,'cup'],['躺着听一张专辑',1,'note'],['和朋友语音聊聊天',1,'heart'],['下楼散散步',1,'sun'],['跟着视频拉伸一下',1,'leaf'],['整理一下桌面一角',1,'star'],['写三件今天的小确幸',1,'star'],['敷个面膜',1,'moon'],['看几页闲书',1,'leaf'],
-['做一顿简单的饭',2,'cup'],['出门晒晒太阳走走',2,'sun'],['跳一段喜欢的舞',2,'note'],['约朋友吃顿好吃的',2,'heart'],['去公园骑会儿车',2,'leaf'],['画一幅随手画',2,'star'],['给房间换个小布置',2,'star'],['出门拍点喜欢的风景',2,'sun']];
+['喝几口温水',0,'cup'],['听一首单曲循环的歌',0,'note'],['闭眼深呼吸 5 次',0,'cloud'],['刷 3 个可爱小动物视频',0,'heart'],['给好朋友发个表情包',0,'heart'],['吃一口喜欢的零食',0,'star'],['站起来伸个懒腰',0,'sun'],
+['洗个热水澡',1,'cloud'],['点一杯喜欢的奶茶',1,'cup'],['下楼走一圈',1,'sun'],['跟着视频拉伸一下',1,'leaf'],['敷个面膜躺一会儿',1,'moon'],['写下今天的 3 件小确幸',1,'star'],['和朋友语音聊聊天',1,'heart'],
+['出门吃顿好吃的',2,'heart'],['去喜欢的店逛逛',2,'star'],['看一部想看很久的电影',2,'moon'],['出门拍点喜欢的风景',2,'sun'],['做一顿简单的饭',2,'cup'],['运动出一身汗',2,'leaf'],['收拾一下桌面，换个心情',2,'star']];
 /* ---------- icons ---------- */
 function icon(n,c){c=c||'currentColor';const s='fill="none" stroke="'+c+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';const P={
 sun:`<circle cx="13" cy="13" r="5" ${s} fill="#f7c95c"/><path ${s} d="M13 2v3M13 21v3M2 13h3M21 13h3M5 5l2 2M19 19l2 2M5 21l2-2M19 7l2-2"/>`,
@@ -381,6 +389,7 @@ const dkey=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+Str
 const keyOff=n=>dkey(new Date(NOW().getTime()-n*864e5));
 const TODAY=keyOff(0),YEST=keyOff(1);
 let days=LS.get('days',{}),tags=LS.get('tags',null),mine=LS.get('mine',[]);
+let menu=LS.get('menu',null);if(!menu){menu=ITEMS.map(x=>({t:x[0],tier:x[1],ic:x[2]}));mine.forEach(x=>{if(!menu.some(m=>m.t===x.t))menu.push({t:x.t,tier:x.tier,ic:x.ic||'star'})});LS.set('menu',menu)}
 if(!tags){tags=DEFAULT_TAGS.map(([n,c])=>({n,c}));LS.set('tags',tags)}
 function getDay(k){if(!days[k])days[k]={start:null,must:[],mustDone:[],done:[],actual:null,manual:false,mood:null,note:'',night:false};const d=days[k];d.mustDone=d.mustDone||[];return d}
 function save(){LS.set('days',days)}
@@ -442,19 +451,34 @@ function delTag(i,box,mode){const t=tags[i],bk=JSON.stringify(D);tags.splice(i,1
  rerender();toast('已删除 · '+t.n,()=>{tags.splice(i,0,t);LS.set('tags',tags);Object.assign(D,JSON.parse(bk));save();rerender()})}
 function rerender(){if(cur==='m2'){renderTags('#tags','m');renderMenu('#menuA')}if(cur==='n1'){renderDid();renderTags('#tagsN','n')}if($('#mMenu').classList.contains('on'))renderMenu('#menuB')}
 $$('[data-edit]').forEach(b=>b.onclick=()=>{const box=$('#'+b.dataset.edit),on=box.classList.toggle('edit');b.textContent=on?'好了':'整理';vib()});
-function pool(){return ITEMS.map((x,i)=>({id:'p'+i,t:x[0],tier:x[1],ic:x[2]})).concat(mine.map((x,i)=>({id:'m'+i,t:x.t,tier:x.tier,ic:x.ic})))}
+function pool(){return menu.map((x,i)=>({id:'p'+i,t:x.t,tier:x.tier,ic:x.ic}))}
 function pick(arr,n,seed){const a=arr.slice();let s=seed*9301+49297;for(let i=a.length-1;i>0;i--){s=(s*9301+49297)%233280;const j=Math.floor(s/233280*(i+1));[a[i],a[j]]=[a[j],a[i]]}
- const m=a.filter(x=>x.id[0]==='m'),p=a.filter(x=>x.id[0]!=='m');return m.concat(p).slice(0,n)}
+ return a.slice(0,n)}
 function renderMenu(box){const L=D.start||3;let eff=L;if(st.tired)eff-=1;eff=Math.max(1,eff);
  const P=pool(),seed=st.shuffle+L*7+new Date().getDate();let html='';
  const counts=eff<=1?[3,0,0]:eff===2?[3,2,0]:eff===3?[2,3,1]:eff===4?[2,2,2]:[1,2,3];
  if(eff<=1)html+=`<div class="big-ok hand">今天允许什么都不做 🛏️<div style="font-size:14px;font-weight:500;margin-top:4px;color:var(--soft)">想动一动的话，这几件 2 分钟就好</div></div>`;
  counts.forEach((n,t)=>{if(!n)return;const list=pick(P.filter(x=>x.tier===t),n,seed+t*13);if(!list.length)return;
   if(eff>1)html+=`<div class="tier">${['☁️','🌿','☀️'][t]} ${TIERS[t]}</div>`;
-  html+=list.map(x=>`<div class="item ${D.done.includes(x.t)?'done':''}" data-t="${esc(x.t)}">${icon(x.ic)}<span class="tx">${esc(x.t)}</span><span class="ck"></span>${x.id[0]==='m'?`<button class="x mx" data-mine="${x.id.slice(1)}" aria-label="删除">×</button>`:''}</div>`).join('')});
- const m=$(box);m.innerHTML=html;
- m.querySelectorAll('.item').forEach((el,i)=>{el.style.animation=`pop .5s ${i*0.04}s both cubic-bezier(.2,1.4,.4,1)`;el.onclick=e=>{const xb=e.target.closest('[data-mine]');if(xb){e.stopPropagation();delMine(+xb.dataset.mine);return}if(m.classList.contains('edit'))return;toggleDone(el,e)}})}
-function delMine(i){const x=mine[i];mine.splice(i,1);LS.set('mine',mine);rerender();toast('已删除 · '+x.t,()=>{mine.splice(i,0,x);LS.set('mine',mine);rerender()})}
+  html+=list.map(x=>`<div class="item ${D.done.includes(x.t)?'done':''}" data-t="${esc(x.t)}">${icon(x.ic)}<span class="tx">${esc(x.t)}</span><span class="ck"></span></div>`).join('')});
+ if(!html.includes('class="item'))html+=`<p class="sub" style="margin:10px 0">${P.length?'这一档还空着，':'菜单还空空的，'}<button class="lk" data-mymenu-in>去「我的菜单」放几件喜欢的小事吧</button></p>`;
+ const m=$(box);m.innerHTML=html;const lk=m.querySelector('[data-mymenu-in]');if(lk)lk.onclick=openMine;
+ m.querySelectorAll('.item').forEach((el,i)=>{el.style.animation=`pop .5s ${i*0.04}s both cubic-bezier(.2,1.4,.4,1)`;el.onclick=e=>toggleDone(el,e)})}
+function saveMenu(){LS.set('menu',menu);renderMenu('#menuA');renderMenu('#menuB');if($('#mMine').classList.contains('on'))renderMine()}
+function delMine(i){const x=menu[i];menu.splice(i,1);saveMenu();vib();toast('拿掉了 · '+x.t,()=>{menu.splice(i,0,x);saveMenu()})}
+function renderMine(){let h='';[0,1,2].forEach(t=>{h+=`<div class="tier" style="display:flex;justify-content:space-between;align-items:center">${['☁️','🌿','☀️'][t]} ${TIERS[t]} <button class="lk" data-addt="${t}">＋ 加一件</button></div>`;
+  const L=menu.map((x,i)=>[x,i]).filter(([x])=>x.tier===t);
+  h+=L.length?L.map(([x,i])=>`<div class="mrow">${icon(x.ic)}<span class="tx" data-ed="${i}">${esc(x.t)}</span><button class="x" data-del="${i}" aria-label="删除">×</button></div>`).join(''):`<p class="tiny" style="margin:4px 2px 8px;color:var(--soft)">这一档还空着，想到了就加一件吧</p>`});
+ const b=$('#mineList');b.innerHTML=h;
+ b.querySelectorAll('[data-del]').forEach(x=>x.onclick=()=>delMine(+x.dataset.del));
+ b.querySelectorAll('[data-ed]').forEach(x=>x.onclick=()=>openAdd('mine','m',+x.dataset.ed));
+ b.querySelectorAll('[data-addt]').forEach(x=>x.onclick=()=>{addTier=+x.dataset.addt;openAdd('mine')})}
+function openMine(){$('#mineAsk').hidden=true;renderMine();$('#mineList').scrollTop=0;$('#mMine').classList.add('on')}
+$$('[data-mymenu]').forEach(b=>b.onclick=openMine);
+$('#mineAdd').onclick=()=>openAdd('mine');
+$('#mineRestore').onclick=()=>{const miss=ITEMS.filter(x=>!menu.some(m=>m.t===x[0]));if(!miss.length){toast('默认的小事都在菜单里啦');return}$('#mineAsk').hidden=false};
+$('#mineNo').onclick=()=>{$('#mineAsk').hidden=true};
+$('#mineYes').onclick=()=>{const bk=menu.slice();ITEMS.forEach(x=>{if(!menu.some(m=>m.t===x[0]))menu.push({t:x[0],tier:x[1],ic:x[2]})});$('#mineAsk').hidden=true;const n=menu.length-bk.length;saveMenu();toast('加回了 '+n+' 件默认小事',()=>{menu=bk;saveMenu()})};
 function toggleDone(el,e){const t=el.dataset.t,k=D.done.indexOf(t);if(k>=0)D.done.splice(k,1);else{D.done.push(t);bubbles(el,e);vib()}el.classList.toggle('done');save()}
 $$('[data-shuffle]').forEach(b=>b.onclick=()=>{st.shuffle++;renderMenu('#menuA');renderMenu('#menuB')});
 $$('[data-addmine]').forEach(b=>b.onclick=()=>openAdd('mine'));
@@ -462,18 +486,19 @@ $('#charge').onclick=()=>{renderMenu('#menuB');$('#mMenu').classList.add('on')};
 $('#mMenu').addEventListener('transitionend',()=>{});
 
 /* ---------- 添加标签 / 小事 ---------- */
-let addMode='tag',addFrom='m',addCost=2,addTier=0;
+let addMode='tag',addFrom='m',addCost=2,addTier=0,addEdit=-1;
 function renderPick(){$('#costPick').innerHTML=[1,2,3,4,5].map(c=>`<button data-c="${c}" style="opacity:${c<=addCost?1:.35}">${bolts(1,30)}</button>`).join('')+`<span style="align-self:center;font-size:13px;color:var(--soft)">${addCost} 格</span>`;
  $('#costPick').querySelectorAll('button').forEach(b=>b.onclick=()=>{addCost=+b.dataset.c;vib();renderPick()})}
-function openAdd(mode,from){addMode=mode;addFrom=from||'m';$('#addName').value='';$('#addTitle').textContent=mode==='tag'?'加一件必须做的事':'加一件自己的小事';
- $('#costWrap').style.display=mode==='tag'?'':'none';$('#tierWrap').style.display=mode==='tag'?'none':'';$('#addOk').textContent=mode==='tag'?'存成小标签':'放进菜单';renderPick();
+function openAdd(mode,from,ed){addMode=mode;addFrom=from||'m';addEdit=ed==null?-1:ed;$('#addName').value=addEdit>=0?menu[addEdit].t:'';if(addEdit>=0)addTier=menu[addEdit].tier;$('#addTitle').textContent=mode==='tag'?'加一件必须做的事':addEdit>=0?'改一改这件小事':'加一件自己的小事';
+ $('#costWrap').style.display=mode==='tag'?'':'none';$('#tierWrap').style.display=mode==='tag'?'none':'';$('#addOk').textContent=mode==='tag'?'存成小标签':addEdit>=0?'改好啦':'放进菜单';renderPick();
  $('#tierSeg').innerHTML=TIERS.map((c,i)=>`<button data-c="${i}" class="${i===addTier?'on':''}">${c}</button>`).join('');
  $('#tierSeg').querySelectorAll('button').forEach(b=>b.onclick=()=>{addTier=+b.dataset.c;$('#tierSeg').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b))});
  $('#mAdd').classList.add('on');setTimeout(()=>$('#addName').focus(),350)}
 $('#addOk').onclick=()=>{const n=$('#addName').value.trim();if(!n){$('#addName').focus();return}
  if(addMode==='tag'){if(!tags.some(t=>t.n===n)){tags.push({n,c:addCost});LS.set('tags',tags)}if(!D.must.some(m=>m.n===n))D.must.push({n,c:addCost});if(addFrom==='n'&&!D.mustDone.includes(n))D.mustDone.push(n);save();
   if(addFrom==='n'){renderTags('#tagsN','n');renderDid()}else renderTags('#tags','m');toast('存好啦，下次点一下就行')}
- else{mine.push({t:n,tier:addTier,ic:ICONS[mine.length%ICONS.length]});LS.set('mine',mine);renderMenu('#menuA');renderMenu('#menuB');toast('放进菜单啦')}
+ else if(addEdit>=0){const o=menu[addEdit],bk={...o};o.t=n;o.tier=addTier;saveMenu();toast('改好啦',()=>{Object.assign(o,bk);saveMenu()})}
+ else{if(menu.some(m=>m.t===n)){toast('菜单里已经有这件啦')}else{menu.push({t:n,tier:addTier,ic:ICONS[menu.length%ICONS.length]});saveMenu();toast('放进菜单啦')}}
  $('#mAdd').classList.remove('on')};
 
 /* ---------- 晚上 ---------- */
