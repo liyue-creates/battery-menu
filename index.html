@@ -616,14 +616,23 @@ function weekSum(ks){const rk=ks.filter(k=>days[k]&&days[k].start!=null),n=rk.le
 function lastKs(){const a=[];for(let i=6;i>=0;i--){const d=new Date(TODAY+'T12:00');d.setDate(d.getDate()-i);a.push(dkey(d))}return a}
 function weekKs(mon){const a=[];for(let i=0;i<7;i++){const d=new Date(mon);d.setDate(d.getDate()+i);a.push(dkey(d))}return a}
 function renderSum(rk){const el=$('#wsum');if(!el)return;if(wkOff!==0||!rk.length){el.remove();return}const w=weekSum(lastKs());
- const l2=w.tone==='over'?'去<button class="chg" id="wchg">充充电</button>，找点开心的事':w.lines[1];
+ const ks7=weekKs(monOf(TODAY)),fbt=esc((w7=>wkFb(weekTitle(w7,ks7)[0],w7,ks7))(weekSum(ks7))),l2=fbt.replace('充充电','<button class="chg" id="wchg">充充电</button>');
  el.innerHTML=`<div class="wl">${w.lines[0]}</div><div class="wl">${l2}<button class="lk2" id="wopen">周卡 ›</button></div>`;
  const c=$('#wchg');if(c)c.onclick=()=>{renderMenu('#menuB');$('#mMenu').classList.add('on')};$('#wopen').onclick=()=>openWeek(weekKs(monOf(TODAY)))}
 let WKN='';
 function moodImg(m,ink){return new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(moodSvg(m,ink).replace('<svg','<svg xmlns="http://www.w3.org/2000/svg" width="88" height="88"'))})}
 function weekTitle(w,ks){const n=w.n;let L=0,O=0,M=0;w.rk.forEach(k=>{const d=days[k],v=d.start-yOf(d);if(v>0)L++;else if(v<0)O++;M+=(d.done||[]).length});
- if(n<=2)return['轻轻记录周','记下来就很好'];if(M>=5)return['会充电小能手周','很会照顾自己'];if(L*2>=n&&!O)return['活力满格周','电量满满，状态在线'];
- if(L>O)return['元气小电池周','电还有剩，节奏不错'];if(O*2>=n)return['努力小电池周','认真用了很多电，记得充充电'];return['慢慢充电周','慢慢来，刚刚好']}
+ if(n<=2)return['轻轻记录周','记下来就很好'];if(M>=5)return['充电小能手周','很会照顾自己'];if(L*2>=n&&!O)return['满格活力周','电量满满，状态在线'];
+ if(L>O)return['元气满满周','电还有剩，节奏不错'];if(O*2>=n)return['努力小电池周','认真用了很多电，记得充充电'];return['慢慢充电周','慢慢来，刚刚好']}
+const FB={'轻轻记录周':['记下来就很棒，下周再多记一两天吧','每次打开都算数，明天也来看看自己呀','先从记录开始，慢慢就有自己的节奏啦'],
+ '充电小能手周':['这周也有好好照顾自己哦～','「{t}」给你充了好多电，下周也安排上吧','会给自己充电的你，真可爱～'],
+ '满格活力周':['超棒的！把喜欢的事继续留在日程里','状态亮晶晶，下周也按这个节奏来吧'],
+ '元气满满周':['电还有剩，节奏真好！留一格给喜欢的事吧','元气在线～每天睡饱一点，继续保持'],
+ '努力小电池周':['这周很努力啦，下周给自己留一个什么都不做的晚上吧','去充充电，挑一件喜欢的小事做做吧','试试每天先做一件 2 分钟的小事'],
+ '慢慢充电周':['慢慢来就好，去充充电，找件开心的小事吧','给自己一点慢慢来的时间，泡杯热饮吧','今晚早点休息，明天轻轻出发']};
+function wkFb(tt,w,ks){const a=FB[tt]||FB['慢慢充电周'];let h=0;for(const ch of (ks[0]||''))h=(h*31+ch.charCodeAt(0))%997;
+ const cnt={};w.rk.forEach(k=>(days[k].done||[]).forEach(x=>cnt[x]=(cnt[x]||0)+1));const t=Object.keys(cnt).sort((x,y)=>cnt[y]-cnt[x])[0];
+ const ok=a.filter(x=>t||!x.includes('{t}'));let r=ok[h%ok.length].replace('{t}',t||'');return r}
 async function openWeek(ks){WKN=ks[0];const w=weekSum(ks),ink=THEMES[2][1],im={};for(const k of ks){const d=days[k];if(d&&d.mood)im[k]=await moodImg(d.mood,ink)}
  WKW=[ks,w,im];drawWeek(ks,w,im);drawWeekB(ks,w,im);const f=$('#wflip');f.classList.remove('back');$('.wb').scrollTop=0;
  $('#wfhint').style.visibility=LS.get('wkFlipped')?'hidden':'';$('#mWeek').classList.add('on')}
@@ -647,7 +656,7 @@ function drawWeek(ks,w,im){const cv=$('#wcard'),W=660,H=880;cv.width=W;cv.height
  wBg(c,W,H);const [tt,td]=weekTitle(w,ks);mascot(c,62,80,ink);
  c.fillStyle=t[2];c.font='22px '+fs;c.fillText(`${md(ks[0])} – ${md(ks[6])} · 记了 ${w.n} 天`,206,100);
  c.font='bold 54px '+fs;const tw=Math.min(c.measureText(tt).width,W-250);c.fillStyle='rgba(247,212,138,.8)';rr(c,200,140,tw+12,26,10,2);c.fill();c.fillStyle=ink;c.fillText(tt,206,162,W-250);
- c.fillStyle=t[2];c.font='23px '+fs;c.fillText(fitTxt(c,td,W-250),206,204);
+ c.fillStyle=t[2];c.font='22px '+fs;c.fillText(fitTxt(c,td,W-250),206,196);{const fbt=wkFb(tt,w,ks);let z=21;c.font=z+'px '+fs;while(z>15&&c.measureText(fbt).width>W-250){z--;c.font=z+'px '+fs}c.fillStyle='#b0811a';c.fillText(fitTxt(c,fbt,W-250),206,232)}
  const base=405,u=24,rk=w.rk,n=rk.length,x0=n>1?118:W/2,sp=n>1?(W-236)/(n-1):0;
  c.save();rr(c,52,250,W-104,350,26,0);c.fillStyle='rgba(255,255,255,.45)';c.fill();c.restore();
  const P=rk.map((k,i)=>{const d=days[k],v=d.start-yOf(d);return{k,v,x:x0+sp*i,y:base-Math.max(-4,Math.min(4,v))*u}});
@@ -666,9 +675,9 @@ function drawWeek(ks,w,im){const cv=$('#wcard'),W=660,H=880;cv.width=W;cv.height
    if(i<w.top.length-1){c.save();c.setLineDash([4,7]);c.strokeStyle='rgba(120,95,60,.22)';c.lineWidth=1.5;c.beginPath();c.moveTo(130,cy+48);c.lineTo(W-96,cy+48);c.stroke();c.restore()}})}
  c.textAlign='center';c.fillStyle=t[2];c.globalAlpha=.7;c.font='19px '+fs;c.fillText('⚡ 电量条',W/2,H-44);c.globalAlpha=1;c.textAlign='left';$('#wcardImg').src=cv.toDataURL('image/png')}
 const ENC={'轻轻记录周':['愿意停下来看看自己，就已经很棒啦','每一次记录，都是在好好陪自己'],
- '会充电小能手周':['你很会照顾自己，这份温柔要一直留着','开心的小事，一件一件都算数'],
- '活力满格周':['这周的你亮晶晶的','带着这份能量，继续往前走吧'],
- '元气小电池周':['一步一步来，你做得很好','电还有剩，就把它留给喜欢的事'],
+ '充电小能手周':['你很会照顾自己，这份温柔要一直留着','开心的小事，一件一件都算数'],
+ '满格活力周':['这周的你亮晶晶的','带着这份能量，继续往前走吧'],
+ '元气满满周':['一步一步来，你做得很好','电还有剩，就把它留给喜欢的事'],
  '努力小电池周':['辛苦啦，给自己多留一点休息的时间','认真生活的你，值得被好好抱一抱'],
  '慢慢充电周':['按自己的节奏走，刚刚好','慢慢来，好事会一点点靠近']};
 function selfGet(){return (LS.get('wkSelf')||{})[WKN]||''}
