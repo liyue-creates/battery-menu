@@ -8,13 +8,16 @@
 <style>
 :root{--bg:#f6efe2;--ink:#4a3f35;--soft:#8a7b6c;--fill:#f4b860;--fill2:#f7d48a;--card:#fffaf0;--accent:#e98a6b;--paper-dot:rgba(120,90,60,.06)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;overflow:hidden}
+html,body{margin:0;height:100%;height:100dvh;overflow:hidden;overscroll-behavior:none}
+body{position:fixed;inset:0;width:100%}
+.mid{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;margin:0 -4px;padding:0 4px 6px}
+.mid>*{flex-shrink:0}.screen>.bottom,.screen>.back,.screen>h1,.screen>.uhead{flex:none}
 body{font-family:"PingFang SC","Hiragino Sans GB","Noto Sans CJK SC","Microsoft YaHei",sans-serif;color:var(--ink);background:var(--bg);
  background-image:radial-gradient(var(--paper-dot) 1px,transparent 1.2px),radial-gradient(var(--paper-dot) 1px,transparent 1.2px);background-size:18px 18px,23px 23px;background-position:0 0,9px 11px;
  transition:background-color .8s ease,color .8s ease}
 .hand{filter:url(#wobble)}
 .app{position:relative;height:100%;max-width:480px;margin:0 auto;overflow:hidden}
-.screen{position:absolute;inset:0;padding:calc(env(safe-area-inset-top) + 22px) 22px calc(env(safe-area-inset-bottom) + 22px);display:flex;flex-direction:column;overflow-y:auto;
+.screen{position:absolute;inset:0;padding:calc(env(safe-area-inset-top) + 22px) 22px calc(env(safe-area-inset-bottom) + 22px);display:flex;flex-direction:column;overflow:hidden;overscroll-behavior:none;
  opacity:0;transform:translateX(40px);pointer-events:none;transition:opacity .5s ease,transform .6s cubic-bezier(.2,.9,.25,1.1)}
 .screen.on{opacity:1;transform:none;pointer-events:auto}
 .screen.left{transform:translateX(-40px)}
@@ -27,7 +30,7 @@ h2{font-size:17px;margin:18px 0 8px;font-weight:700;display:flex;align-items:cen
 .btn:active{transform:translate(2px,3px) scale(.96);box-shadow:1px 1px 0 var(--ink)}.tag,.item,.mood,.urow{transition:transform .15s}.tag:active,.item:active,.mood:active,.urow:active{transform:scale(.96)}
 .btn.ghost{background:transparent;box-shadow:none;border-style:dashed;font-weight:500;font-size:14px;padding:8px 12px}
 .btn.sm{font-size:13px;padding:6px 11px;box-shadow:2px 2px 0 var(--ink);font-weight:600}
-.bottom{margin-top:auto;padding-top:18px;display:flex;gap:10px}
+.bottom{margin-top:auto;padding-top:12px;flex:none;display:flex;gap:10px}
 .bottom .btn{flex:1}
 .link{background:none;border:none;font:inherit;color:var(--soft);font-size:14px;text-decoration:underline wavy;text-underline-offset:4px;cursor:pointer;padding:6px}
 /* battery */
@@ -137,11 +140,11 @@ body{-webkit-user-select:none;user-select:none}textarea,input{-webkit-user-selec
 #u1.on{display:flex;flex-direction:column;overflow:hidden}.uscroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;margin-top:8px}.uscroll .utab{margin-top:0;flex:none}
 .bar{transform-box:fill-box;animation:grow .6s cubic-bezier(.2,1.4,.4,1) both}
 .utab{display:flex;flex-direction:column;flex:1;border:2.5px solid var(--ink);border-radius:18px 14px 20px 15px;background:var(--card);overflow:hidden;margin-top:8px}
-.urow{flex:none;min-height:44px;padding-top:4px!important;padding-bottom:4px!important;display:grid;grid-template-columns:62px 1fr 44px 34px;align-items:center;gap:8px;padding:0 14px;border:0;border-bottom:1.5px dashed rgba(74,63,53,.25);background:none;font:inherit;color:var(--ink);text-align:left;cursor:pointer}
+.urow{flex:none;min-height:44px;padding-top:4px!important;padding-bottom:4px!important;display:grid;grid-template-columns:52px auto 1fr 30px;align-items:center;gap:8px;padding:0 14px;border:0;border-bottom:1.5px dashed rgba(74,63,53,.25);background:none;font:inherit;color:var(--ink);text-align:left;cursor:pointer}
 .urow:last-child{border-bottom:0}.urow.off{opacity:.45;cursor:default}.urow.today{background:rgba(247,235,189,.45)}
 .ud b{display:block;font-size:15px}.ud i{font-style:normal;font-size:11px;color:var(--soft)}
 .ub{display:flex;align-items:center;gap:6px}.ub>svg{width:74px;height:26px}.ubolt{font-size:12px;color:#6f8fb3;font-weight:700;display:flex;align-items:center;gap:1px}
-.uxy{font-size:13px;color:var(--soft);font-weight:600}.um svg{width:28px;height:28px;display:block}
+.uxy{font-size:12.5px;white-space:nowrap;color:var(--soft);font-weight:600}.um svg{width:28px;height:28px;display:block}
 #rtip{margin:8px 0 0;font-size:14px;font-weight:600;background:#e8f0f8;border:2px dashed #8fb0d2;border-radius:14px;padding:9px 12px}
 .grab{width:42px;height:5px;border-radius:3px;background:var(--ink);opacity:.22;margin:0 auto 14px}
 #dayBody h3{display:flex;align-items:center;justify-content:space-between}.dm svg{width:34px;height:34px}
@@ -167,16 +170,19 @@ body{-webkit-user-select:none;user-select:none}textarea,input{-webkit-user-selec
  </header>
  <!-- 早上 1 -->
  <section class="screen" id="m1">
+  <div class="mid">
   <div style="margin:auto 0;padding-bottom:6vh">
    <h1 class="hello">早上好呀，今天能量怎么样？</h1>
    <div id="warm"></div>
    <div class="batwrap" id="batwrap" style="margin-top:30px"><div class="bat hand" id="bat"></div></div>
    <div class="msg" id="msg" style="margin-top:20px"></div>
   </div>
+  </div>
   <div class="bottom" style="margin-top:0"><button class="btn" id="m1next">下一步 →</button></div>
  </section>
  <!-- 早上 2 -->
  <section class="screen" id="m2">
+  <div class="mid">
   <div id="warm2"></div>
   <div class="mini" id="mini"></div>
   <h2>今天必须做的事 <span class="lite">可选 · 点一下加上</span> <button class="lk" data-edit="tags">整理</button></h2>
@@ -185,19 +191,24 @@ body{-webkit-user-select:none;user-select:none}textarea,input{-webkit-user-selec
   <div class="menu" id="menuA"></div>
   <button class="btn ghost" data-addmine style="margin-top:4px;align-self:flex-start">＋ 加一件自己的小事</button>
   <p class="foot">晚上再来记一下今天 🌙</p>
+  </div>
+
  </section>
  <!-- 晚上 0：补问 X -->
  <section class="screen" id="n0">
+  <div class="mid">
   <div style="margin:auto 0;padding-bottom:6vh">
    <h1 class="hello">晚上好呀，今天怎么样？</h1>
    <p class="sub" style="text-align:center" id="n0sub">今天一开始大概有几格电？</p>
    <div class="batwrap" id="batwrapN" style="margin-top:30px"><div class="bat hand" id="batN"></div></div>
    <div class="msg" id="msgN" style="margin-top:20px"></div>
   </div>
+  </div>
   <div class="bottom" style="margin-top:0"><button class="btn" id="n0next">下一步 →</button></div>
  </section>
  <!-- 晚上 1：做了哪些事 -->
  <section class="screen" id="n1">
+  <div class="mid">
   <button class="link back" id="n1back">← 上一步</button>
   <h1 class="hello" style="text-align:left">晚上好呀，今天怎么样？</h1>
   <div class="seg2 hand" id="dayseg"><button data-d="0">记今天</button><button data-d="1">补记昨天</button></div>
@@ -205,10 +216,12 @@ body{-webkit-user-select:none;user-select:none}textarea,input{-webkit-user-selec
   <div id="didList"></div>
   <p class="sub" style="margin:10px 0 6px;display:flex;justify-content:space-between;align-items:center">还做了别的？点一下加上 <button class="lk" data-edit="tagsN">整理</button></p>
   <div class="tags" id="tagsN"></div>
+  </div>
   <div class="bottom"><button class="btn ghost" data-next style="flex:.6">跳过</button><button class="btn" data-next>下一步 →</button></div>
  </section>
  <!-- 晚上 2：用了几格 -->
  <section class="screen" id="n2">
+  <div class="mid">
   <button class="link back" data-go="n1">← 上一步</button>
   <h1>今天用了几格电？</h1>
   <p class="sub">从左往右拖，拖到今天用掉的格数</p>
@@ -216,15 +229,18 @@ body{-webkit-user-select:none;user-select:none}textarea,input{-webkit-user-selec
   <div class="ubig" id="utext"></div>
   <div class="tired" id="utired"></div>
   <p class="hint" id="uhint"></p>
+  </div>
   <div class="bottom"><button class="btn" id="n2next">下一步 →</button></div>
  </section>
  <!-- 晚上 3：打分 + 留言 -->
  <section class="screen" id="n3">
+  <div class="mid">
   <button class="link back" data-go="n2">← 上一步</button>
   <h1>给今天打个分</h1>
   <div class="moods" id="moods" style="margin-top:14px"></div>
   <h2 style="margin-top:28px">留一句话给今天</h2>
   <textarea class="inp" id="note" maxlength="40" placeholder="比如：晚饭的汤很好喝"></textarea>
+  </div>
   <div class="bottom"><button class="btn ghost" id="n3skip" style="flex:.6">跳过</button><button class="btn" id="n3next">生成今日卡片 ✨</button></div>
  </section>
  <!-- 用量 -->
@@ -238,9 +254,11 @@ body{-webkit-user-select:none;user-select:none}textarea,input{-webkit-user-selec
  </section>
  <!-- 卡片 -->
  <section class="screen" id="c1">
+  <div class="mid">
   <h1>今日电量卡片</h1>
   <p class="sub">存下来，发给想告诉的人</p>
   <div class="cardbox"><canvas id="card" width="660" height="880" style="display:none"></canvas><img id="cardImg" alt="今日电量卡片" style="width:100%;border-radius:8px;display:block;filter:drop-shadow(3px 5px 0 rgba(74,63,53,.25));-webkit-touch-callout:default;-webkit-user-select:auto;user-select:auto"></div><p class="tiny" style="margin-top:8px">手机上长按卡片就能存</p>
+  </div>
   <div class="bottom"><button class="btn ghost" id="edit" style="flex:.6">改一改</button><button class="btn ghost" id="cReview" style="flex:.6">回顾</button><button class="btn" id="save">存图 / 分享</button></div>
  </section>
 </div>
@@ -352,7 +370,8 @@ const sumText=(x,y)=>y==null?`今天 ${x} 格电`:`今天 ${x} 格电，用了 $
 function theme(l){const t=THEMES[ik(l)],r=document.documentElement.style;['--bg','--ink','--soft','--fill','--fill2','--card'].forEach((v,i)=>r.setProperty(v,t[i]));document.querySelector('meta[name=theme-color]').content=t[0]}
 let undoFn=null;function toast(t,u){const e=$('#toast');$('#toastT').textContent=t;undoFn=u||null;$('#undo').hidden=!u;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>{e.classList.remove('on');undoFn=null},u?4000:1800)}
 document.addEventListener('click',e=>{if(e.target.id==='undo'&&undoFn){const f=undoFn;undoFn=null;f();$('#toast').classList.remove('on');vib()}});
-function vib(){try{navigator.vibrate&&navigator.vibrate(12)}catch(e){}}
+function vib(){try{navigator.vibrate&&navigator.vibrate(8)}catch(e){}}
+function bump(){const w=document.getElementById('ubat');if(!w)return;w.animate([{transform:'scale(1)'},{transform:'scale(1.025)'},{transform:'scale(1)'}],{duration:180,easing:'ease-out'})}
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 
 /* ---------- 用电电池（可拖出电池外，最多 10 格） ---------- */
@@ -371,7 +390,7 @@ function usedSVG(X,Y){const c=UG.c,H=UG.h,ink='var(--ink)',ex=Math.max(0,Y-5);le
  const bx0=(UG.body+UG.knob)/2-(ex*(UG.bw+8)-8)/2;
  for(let i=0;i<ex;i++){const x=bx0+i*(UG.bw+8);s+=`<g data-bolt="${i}" style="cursor:pointer"><rect x="${x}" y="${UG.by}" width="${UG.bw}" height="${UG.bh}" fill="transparent"/><g transform="translate(${x+8},${UG.by+2}) scale(2.2)"><path d="${BP}" fill="#c3dbf0" stroke="#6f8fb3" stroke-width=".7" stroke-linejoin="round" style="animation:fadein .3s both"/></g></g>`}
  return s+'</svg>'}
-function yFromX(px){const e=UG.body+UG.knob;if(px>e+6){return Math.min(10,5+Math.ceil((px-e-6)/17))}let y=0;for(let i=0;i<5;i++)if(px>=ux(i)+UG.c*.45)y=i+1;return y}
+function yFromX(px){const e=UG.body+UG.knob;if(px>e+6){return Math.min(10,5+Math.ceil((px-e-6)/UG.c))}let y=0;for(let i=0;i<5;i++)if(px>=ux(i)+UG.c*.45)y=i+1;return y}
 
 /* ---------- 早上：选电量 ---------- */
 let lastSnap=null;
@@ -455,8 +474,9 @@ function renderUsed(y){Y=Math.max(0,Math.min(10,y));const X=D.start;
  else if(!fillT)h.textContent=Y>=5&&Y<10?'满了还能继续往右拖 →':'';}
 let fillT=null;function fillTo(n){clearInterval(fillT);let y=Y;const d=n>y?1:-1;fillT=setInterval(()=>{y+=d;vib();renderUsed(y);if(y===n){clearInterval(fillT);fillT=null;D.actual=n;D.manual=true;save();renderUsed(n)}},140)}
 (function(){const w=$('#ubat');let drag=false;const px=e=>{const r=w.getBoundingClientRect();return (e.clientX-r.left)/r.width*UV.w+UV.l};
- const upd=e=>{const y=yFromX(px(e));if(y!==Y){vib();D.actual=y;D.manual=true;save();renderUsed(y)}};
- w.addEventListener('pointerdown',e=>{const b=e.target.closest('[data-bolt]');if(b){const y=5+(+b.dataset.bolt);vib();D.actual=y;D.manual=true;save();renderUsed(y);return}drag=true;w.setPointerCapture(e.pointerId);upd(e)});w.addEventListener('pointermove',e=>{if(drag)upd(e)});
+ let anc=null;const yRel=x=>{const e=UG.body+UG.knob;if(anc==null){const y=yFromX(x);if(y>=5&&x>e){anc=Math.min(x,e+6)}return y}if(x<anc-UG.c*.5){anc=null;return yFromX(x)}return Math.max(5,Math.min(10,5+Math.floor((x-anc)/UG.c+.35)))};
+ const upd=e=>{const y=yRel(px(e));if(y!==Y){vib();bump();D.actual=y;D.manual=true;save();renderUsed(y)}};
+ w.addEventListener('pointerdown',e=>{const b=e.target.closest('[data-bolt]');if(b){const y=5+(+b.dataset.bolt);vib();D.actual=y;D.manual=true;save();renderUsed(y);return}drag=true;w.setPointerCapture(e.pointerId);const x0=px(e);anc=(Y>=5&&x0>UG.body*.6)?x0-(Y-5)*UG.c:null;if(anc==null)upd(e)});w.addEventListener('pointermove',e=>{if(drag)upd(e)});
  const up=()=>{if(drag){drag=false;if(D.actual==null){D.actual=Y;save()}}};w.addEventListener('pointerup',up);w.addEventListener('pointercancel',up)})();
 function initUsed(){if(!D.manual)D.actual=null;renderUsed(D.manual?D.actual:0)}
 
@@ -508,9 +528,9 @@ function renderWeek(){const ks=[];for(let i=6;i>=0;i--){const d=new Date(TODAY+'
  $('#wkLbl').textContent=wkOff===0?'最近 7 天':`${+ks[0].slice(5,7)}/${+ks[0].slice(8)} – ${+ks[6].slice(5,7)}/${+ks[6].slice(8)}`;
  const older=recKeys().some(k=>k<ks[0]);$('#wkPrev').textContent=wkOff<0?'‹ 回到最近':'看更早 ›';$('#wkPrev').style.visibility=(older||wkOff<0)?'':'hidden';
  const WD='日一二三四五六';
- $('#utab').innerHTML=rk.slice().reverse().map(k=>{const d=days[k];const X=d.start,Y=yOf(d),est=isEst(d)&&!d.night;
-  return `<button class="urow ${k===TODAY?'today':''}" data-k="${k}"><span class="ud"><b>${+k.slice(5,7)}/${+k.slice(8)}</b><i>${k===TODAY?'今天':'周'+WD[new Date(k+'T12:00').getDay()]}</i></span><span class="ub" style="${est?'opacity:.45':''}">${miniBat(X,Y)}</span><span class="uxy">${X}/${Y}</span><span class="um">${d.mood?moodSvg(d.mood):''}</span></button>`}).join('');
- $$('#utab .urow').forEach(b=>b.onclick=()=>openDay(b.dataset.k));
+ $('#utab').innerHTML=rk.map(k=>{const d=days[k];const X=d.start,Y=yOf(d),est=isEst(d)&&!d.night;
+  return `<button class="urow ${k===TODAY?'today':''}" data-k="${k}"><span class="ud"><b>${+k.slice(5,7)}/${+k.slice(8)}</b><i>${k===TODAY?'今天':'周'+WD[new Date(k+'T12:00').getDay()]}</i></span><span class="ub" style="${est?'opacity:.45':''}">${miniBat(X,Y)}</span><span class="uxy">${X} 格电，用了 ${Y} 格</span><span class="um">${d.mood?moodSvg(d.mood):''}</span></button>`}).join('');
+ $$('#utab .urow').forEach(b=>b.onclick=()=>openDay(b.dataset.k));requestAnimationFrame(()=>{const sc=$('.uscroll');sc.scrollTop=sc.scrollHeight});
  const keys=recKeys();let streak=0;for(let i=keys.length-1;i>=0;i--){const d=days[keys[i]];if(yOf(d)>d.start)streak++;else break}
  $('#rtip').innerHTML=streak>=3?'🫖 最近连着几天都超了，找一天好好歇歇吧':'';$('#rtip').style.display=streak>=3&&wkOff===0?'':'none';
  if(!rk.length){$('#ustrip').innerHTML='<div class="ce">这几天还没有记录</div>';return}
@@ -519,7 +539,7 @@ function renderWeek(){const ks=[];for(let i=6;i>=0;i--){const d=new Date(TODAY+'
  rk.forEach((k,i)=>{const d=days[k],X=d.start,Y=yOf(d),v=X-Y,cx=x0+slot*i+slot/2,h=Math.max(4,Math.min(5,Math.abs(v))*u),x=cx-bw/2,dl=i*.06;
   if(v>=0)g+=`<rect class="bar" style="transform-origin:bottom;animation-delay:${dl}s" x="${x}" y="${base-h}" width="${bw}" height="${h}" rx="6" fill="var(--fill)" stroke="var(--ink)" stroke-width="2.2"/>`;
   else g+=`<rect class="bar" style="transform-origin:top;animation-delay:${dl}s" x="${x}" y="${base}" width="${bw}" height="${h}" rx="6" fill="#d4e4f3" stroke="#6f8fb3" stroke-width="2" stroke-dasharray="5 3"/>`;
-  const ny=v>=0?base-h-6:base+h+14;g+=`<text x="${cx}" y="${ny}" text-anchor="middle" font-size="12" font-weight="700" fill="${v>=0?'var(--ink)':'#56708f'}">${X}/${Y}</text>`;
+  const ny=v>=0?base-h-6:base+h+14;g+=`<text x="${cx}" y="${ny}" text-anchor="middle" font-size="12" font-weight="700" fill="${v>=0?'var(--ink)':'#56708f'}">${v>0?'+'+v:v<0?'−'+(-v):'0'}</text>`;
   if(d.mood){const my=8;g+=moodSvg(d.mood).replace('<svg',`<svg x="${cx-11}" y="${my}" width="22" height="22"`)}
   g+=`<text x="${cx}" y="${H-6}" text-anchor="middle" font-size="11" fill="${k===TODAY?'var(--ink)':'var(--soft)'}" font-weight="${k===TODAY?700:400}">${k===TODAY?'今天':(+k.slice(5,7))+'/'+(+k.slice(8))}</text>`});
  $('#ustrip').innerHTML=g+'</svg>'}
