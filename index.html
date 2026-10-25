@@ -97,6 +97,11 @@ textarea.inp{resize:none;height:76px;line-height:1.5}
 .wface img{width:100%;display:block;border-radius:10px;-webkit-touch-callout:default;-webkit-user-select:auto;user-select:auto}
 .wb{transform:rotateY(180deg);overflow:hidden}
 .wflip:active .wfin{scale:.98}
+.wself{position:absolute;left:8.5%;top:19.3%;width:83%;height:10.4%;border:0;border-radius:12px;background:transparent;font:inherit;color:#a8988a;font-size:14px;text-align:left;padding:0 0 0 4%;cursor:text;pointer-events:none;-webkit-tap-highlight-color:transparent}
+.wflip.back .wself{pointer-events:auto}
+.wself.ph{background:#fffaf0;border:1.5px dashed rgba(138,123,108,.45)}
+.wself:not(.ph):active{background:rgba(247,212,138,.25)}
+.selfc{font-size:12px;color:var(--soft);text-align:right;margin-top:4px}
 @media (prefers-reduced-motion:reduce){.wfin{transition:none;transform:none!important}.wface{transform:none;transition:opacity .25s}.wb{opacity:0;pointer-events:none}.wflip.back .wb{opacity:1;pointer-events:auto}.wflip.back .wf{opacity:0}}
 .cardbox{margin:16px auto 0;width:100%;max-width:330px}
 .cardbox canvas{width:100%;border-radius:8px;display:block;filter:drop-shadow(0 6px 14px rgba(74,63,53,.16)) drop-shadow(0 1px 2px rgba(74,63,53,.12))}
@@ -285,7 +290,8 @@ body{-webkit-user-select:none;user-select:none}textarea,input{-webkit-user-selec
  <button class="btn ghost" data-addmine style="margin-top:4px">＋ 加一件自己的小事</button>
  <div class="row"><button class="btn" data-close>好啦</button></div>
 </div></div>
-<div class="mask" id="mWeek"><div class="sheet" style="text-align:center"><canvas id="wcard" style="display:none"></canvas><canvas id="wcardB" style="display:none"></canvas><div class="wflip" id="wflip"><div class="wfin"><div class="wface wf"><img id="wcardImg" alt="这周的电量卡片"></div><div class="wface wb"><img id="wcardImgB" alt="这周写下的话"></div></div></div><p class="tiny" id="wfhint" style="margin-top:8px">点卡片翻面 · 长按能存</p><div class="row"><button class="btn ghost" data-close>好啦</button><button class="btn" id="wsave">存图 / 分享</button></div></div></div>
+<div class="mask" id="mWeek"><div class="sheet" style="text-align:center"><canvas id="wcard" style="display:none"></canvas><canvas id="wcardB" style="display:none"></canvas><div class="wflip" id="wflip"><div class="wfin"><div class="wface wf"><img id="wcardImg" alt="这周的电量卡片"></div><div class="wface wb"><img id="wcardImgB" alt="这周写下的话"><button class="wself" id="wself" aria-label="给这周的自己写一句"></button></div></div></div><p class="tiny" id="wfhint" style="margin-top:8px">点卡片翻面 · 长按能存</p><div class="row"><button class="btn ghost" data-close>好啦</button><button class="btn" id="wsave">存图 / 分享</button></div></div></div>
+<div class="mask" id="mSelf"><div class="sheet"><h3 style="margin:4px 0 10px">给这周的自己</h3><input class="inp" id="selfIn" maxlength="30" placeholder="一句话就好，比如：你已经很努力啦"><div class="selfc" id="selfC">0/30</div><div class="row"><button class="btn ghost" id="selfDel">删掉</button><button class="btn" id="selfOk">好啦</button></div></div></div>
 <div class="mask" id="mDay"><div class="sheet"><div id="dayBody"></div></div></div>
 <div class="mask" id="mSave"><div class="sheet preview">
  <h3>长按图片就能保存 / 分享</h3>
@@ -619,7 +625,7 @@ function weekTitle(w,ks){const n=w.n;let L=0,O=0,M=0;w.rk.forEach(k=>{const d=da
  if(n<=2)return['轻轻记录周','记下来就很好'];if(M>=5)return['会充电小能手周','很会照顾自己'];if(L*2>=n&&!O)return['活力满格周','电量满满，状态在线'];
  if(L>O)return['元气小电池周','电还有剩，节奏不错'];if(O*2>=n)return['努力小电池周','认真用了很多电，记得充充电'];return['慢慢充电周','慢慢来，刚刚好']}
 async function openWeek(ks){WKN=ks[0];const w=weekSum(ks),ink=THEMES[2][1],im={};for(const k of ks){const d=days[k];if(d&&d.mood)im[k]=await moodImg(d.mood,ink)}
- drawWeek(ks,w,im);drawWeekB(ks,w,im);const f=$('#wflip');f.classList.remove('back');$('.wb').scrollTop=0;
+ WKW=[ks,w,im];drawWeek(ks,w,im);drawWeekB(ks,w,im);const f=$('#wflip');f.classList.remove('back');$('.wb').scrollTop=0;
  $('#wfhint').style.visibility=LS.get('wkFlipped')?'hidden':'';$('#mWeek').classList.add('on')}
 $('#wflip').onclick=()=>{const f=$('#wflip');f.classList.toggle('back');vib();if(!LS.get('wkFlipped')){LS.set('wkFlipped',1);setTimeout(()=>$('#wfhint').style.visibility='hidden',600)}};
 const WFS='"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif';
@@ -627,8 +633,7 @@ function wBg(c,W,H){const t=THEMES[2];c.clearRect(0,0,W,H);let sd=7;const R=()=>
  const g=c.createRadialGradient(W*.4,H*.3,60,W/2,H/2,W);g.addColorStop(0,'#fffcf4');g.addColorStop(1,'#f8efdc');c.fillStyle=g;rr(c,14,14,W-28,H-28,38,0);c.fill();
  for(let i=0;i<5200;i++){c.fillStyle=R()<.5?'rgba(120,90,60,.05)':'rgba(255,255,255,.35)';c.fillRect(20+R()*(W-40),20+R()*(H-40),1+R()*1.4,1+R()*1.4)}
  c.strokeStyle='rgba(150,120,85,.06)';c.lineWidth=1;for(let i=0;i<40;i++){const y=20+R()*(H-40),x=20+R()*(W-120);c.beginPath();c.moveTo(x,y);c.lineTo(x+30+R()*70,y+R()*3-1.5);c.stroke()}
- c.lineJoin='round';c.strokeStyle=t[1];c.lineWidth=4.2;rr(c,22,22,W-44,H-44,36,3);c.stroke();c.globalAlpha=.35;c.lineWidth=1.6;rr(c,24,21,W-47,H-43,37,5);c.stroke();c.globalAlpha=1}
-function wTape(c,x,y){c.save();c.translate(x,y);c.rotate(-.04);c.fillStyle='rgba(247,212,138,.7)';c.beginPath();c.moveTo(-64,-16);c.lineTo(64,-16);for(let i=1;i<=6;i++)c.lineTo(64+(i%2?-4:0),-16+i*16/3);c.lineTo(-64,16);for(let i=5;i>=0;i--)c.lineTo(-64+(i%2?4:0),-16+i*16/3);c.closePath();c.fill();c.restore()}
+ c.lineJoin='round';c.strokeStyle=t[1];c.lineWidth=4.2;rr(c,22,22,W-44,H-44,36,0);c.stroke();c.globalAlpha=.3;c.lineWidth=1.6;rr(c,25,24,W-49,H-47,34,0);c.stroke();c.globalAlpha=1}
 function fitTxt(c,s,mw){if(c.measureText(s).width<=mw)return s;while(s&&c.measureText(s+'…').width>mw)s=s.slice(0,-1);return s+'…'}
 function mascot(c,x,y,ink){c.save();c.translate(x,y);c.lineWidth=4;c.strokeStyle=ink;c.lineCap='round';c.lineJoin='round';
  c.fillStyle=ink;rr(c,22,-8,28,12,4,0);c.fill();c.fillStyle='#fffaf0';rr(c,6,2,62,92,16,2);c.fill();c.stroke();
@@ -639,7 +644,7 @@ function mascot(c,x,y,ink){c.save();c.translate(x,y);c.lineWidth=4;c.strokeStyle
  c.fillStyle='#f4b860';c.beginPath();for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,r=i%2?6:14;c.lineTo(96+r*Math.cos(a),0+r*Math.sin(a))}c.closePath();c.fill();c.lineWidth=3;c.stroke();c.restore()}
 function wCnt(rk){const cnt={};rk.forEach(k=>{const d=days[k];d.must.filter(m=>d.mustDone.includes(m.n)).forEach(m=>cnt[m.n]=(cnt[m.n]||0)+1);d.done.forEach(x=>cnt[x]=(cnt[x]||0)+1)});return cnt}
 function drawWeek(ks,w,im){const cv=$('#wcard'),W=660,H=880;cv.width=W;cv.height=H;const c=cv.getContext('2d'),t=THEMES[2],ink=t[1],fs=WFS,md=k=>`${+k.slice(5,7)}/${+k.slice(8)}`;
- wBg(c,W,H);wTape(c,W/2,26);const [tt,td]=weekTitle(w,ks);mascot(c,62,80,ink);
+ wBg(c,W,H);const [tt,td]=weekTitle(w,ks);mascot(c,62,80,ink);
  c.fillStyle=t[2];c.font='22px '+fs;c.fillText(`${md(ks[0])} – ${md(ks[6])} · 记了 ${w.n} 天`,206,100);
  c.font='bold 54px '+fs;const tw=Math.min(c.measureText(tt).width,W-250);c.fillStyle='rgba(247,212,138,.8)';rr(c,200,140,tw+12,26,10,2);c.fill();c.fillStyle=ink;c.fillText(tt,206,162,W-250);
  c.fillStyle=t[2];c.font='23px '+fs;c.fillText(fitTxt(c,td,W-250),206,204);
@@ -660,21 +665,42 @@ function drawWeek(ks,w,im){const cv=$('#wcard'),W=660,H=880;cv.width=W;cv.height
    c.textAlign='right';c.fillStyle='#b0811a';c.font='bold 24px '+fs;c.fillText(nn,W-96,cy+33);
    if(i<w.top.length-1){c.save();c.setLineDash([4,7]);c.strokeStyle='rgba(120,95,60,.22)';c.lineWidth=1.5;c.beginPath();c.moveTo(130,cy+48);c.lineTo(W-96,cy+48);c.stroke();c.restore()}})}
  c.textAlign='center';c.fillStyle=t[2];c.globalAlpha=.7;c.font='19px '+fs;c.fillText('⚡ 电量条',W/2,H-44);c.globalAlpha=1;c.textAlign='left';$('#wcardImg').src=cv.toDataURL('image/png')}
+const ENC={'轻轻记录周':['愿意停下来看看自己，就已经很棒啦','每一次记录，都是在好好陪自己'],
+ '会充电小能手周':['你很会照顾自己，这份温柔要一直留着','开心的小事，一件一件都算数'],
+ '活力满格周':['这周的你亮晶晶的','带着这份能量，继续往前走吧'],
+ '元气小电池周':['一步一步来，你做得很好','电还有剩，就把它留给喜欢的事'],
+ '努力小电池周':['辛苦啦，给自己多留一点休息的时间','认真生活的你，值得被好好抱一抱'],
+ '慢慢充电周':['按自己的节奏走，刚刚好','慢慢来，好事会一点点靠近']};
+function selfGet(){return (LS.get('wkSelf')||{})[WKN]||''}
+function selfSet(v){const o=LS.get('wkSelf')||{};if(v)o[WKN]=v;else delete o[WKN];LS.set('wkSelf',o)}
+function pickNotes(rk){const all=rk.filter(k=>(days[k].note||'').trim());if(all.length<=3)return all;
+ const byLen=[...all].sort((a,b)=>days[b].note.trim().length-days[a].note.trim().length),pick=new Set([all[all.length-1],byLen[0],byLen[1]]);
+ for(const k of byLen){if(pick.size>=3)break;pick.add(k)}return all.filter(k=>pick.has(k))}
 function drawWeekB(ks,w,im){const cv=$('#wcardB'),W=660,H=880,t=THEMES[2],ink=t[1],fs=WFS,WD='日一二三四五六',md=k=>`${+k.slice(5,7)}/${+k.slice(8)}`;
- cv.width=W;cv.height=H;const c=cv.getContext('2d');wBg(c,W,H);
- const notes=w.rk.filter(k=>(days[k].note||'').trim()).slice(-7),mw=W-170;
- const wrap=(txt,f)=>{c.font=f+'px '+fs;const out=[];let l='';for(const ch of txt.replace(/\s+/g,' ')){if(c.measureText(l+ch).width>mw){out.push(l);l=ch;if(out.length===2)break}else l+=ch}
-  if(out.length<2)out.push(l);else if(l&&out.length===2){}if(out.length===2&&txt.replace(/\s+/g,' ').length>(out[0]+out[1]).length){let s=out[1];while(s&&c.measureText(s+'…”').width>mw)s=s.slice(0,-1);out[1]=s+'…'}return out.filter(Boolean)};
- c.fillStyle=t[2];c.font='22px '+fs;c.fillText(`${md(ks[0])} – ${md(ks[6])}`,70,100);c.fillStyle=ink;c.font='bold 40px '+fs;c.fillText(notes.length?'这周写下的话':'这周做过的事',70,152);
- const top=196,bot=H-84;let y=top;
- if(notes.length){let s=1,items,tot;for(;s>=.62;s-=.04){const f=Math.round(27*s);items=notes.map(k=>({k,L:wrap(days[k].note.trim(),f)}));tot=items.reduce((a,i)=>a+(30+10)*s+i.L.length*f*1.5+22*s,0);if(tot<=bot-top)break}
-  const f=Math.round(27*s),lf=Math.round(21*Math.max(s,.8));y=top+Math.max(0,(bot-top-tot)/2*.3);
-  items.forEach(({k,L},i)=>{c.fillStyle=t[2];c.font='bold '+lf+'px '+fs;const lb=`${md(k)} 周${WD[new Date(k+'T12:00').getDay()]}`;c.fillText(lb,70,y+lf);
-   if(im[k])c.drawImage(im[k],70+c.measureText(lb).width+8,y-2,lf*1.4,lf*1.4);y+=(30+10)*s;
-   c.fillStyle=ink;c.font=f+'px '+fs;L.forEach((l,j)=>{c.fillText((j===0?'“':' ')+l+(j===L.length-1?'”':''),76,y+f);y+=f*1.5});y+=22*s;
-   if(i<items.length-1){c.save();c.setLineDash([5,8]);c.strokeStyle='rgba(120,95,60,.25)';c.lineWidth=1.5;c.beginPath();c.moveTo(70,y-12*s);c.lineTo(W-70,y-12*s);c.stroke();c.restore()}})}
- else{const items=[...new Set(Object.keys(wCnt(w.rk)))].slice(0,10);c.font='27px '+fs;if(!items.length){c.fillStyle=t[2];c.fillText('这周还没打勾，慢慢来',70,y+30)}items.forEach(x=>{c.fillStyle=ink;c.fillText(fitTxt(c,'· '+x,W-150),76,y+30);y+=54})}
- c.textAlign='center';c.fillStyle=t[2];c.globalAlpha=.7;c.font='19px '+fs;c.fillText('⚡ 电量条',W/2,H-44);c.globalAlpha=1;c.textAlign='left';$('#wcardImgB').src=cv.toDataURL('image/png')}
+ cv.width=W;cv.height=H;const c=cv.getContext('2d');wBg(c,W,H);const [tt]=weekTitle(w,ks),enc=ENC[tt]||ENC['慢慢充电周'],me=selfGet();
+ const notes=pickNotes(w.rk),mw=W-170;
+ const wrap=(txt,f)=>{c.font=f+'px '+fs;const T=txt.replace(/\s+/g,' '),out=[];let l='';for(const ch of T){if(c.measureText(l+ch).width>mw){out.push(l);l=ch;if(out.length===2)break}else l+=ch}
+  if(out.length<2)out.push(l);if(out.length===2&&T.length>(out[0]+out[1]).length){let x=out[1];while(x&&c.measureText(x+'…”').width>mw)x=x.slice(0,-1);out[1]=x+'…'}return out.filter(Boolean)};
+ c.fillStyle=t[2];c.font='22px '+fs;c.fillText(`${md(ks[0])} – ${md(ks[6])}`,70,96);
+ // 给这周的自己（区域 y 170–262，与 .wself 对齐）
+ c.fillStyle=ink;c.font='bold 30px '+fs;c.fillText('给这周的自己',70,146);
+ c.fillStyle='rgba(247,212,138,.28)';rr(c,56,170,W-112,92,18,0);c.fill();
+ c.fillStyle=ink;const s1=me||enc[0];c.font='27px '+fs;if(c.measureText(s1).width<=W-160)c.fillText(s1,80,226);else{c.font='24px '+fs;let l1='';for(const ch of s1){if(c.measureText(l1+ch).width>W-160)break;l1+=ch}c.fillText(l1,80,208);c.fillText(fitTxt(c,s1.slice(l1.length),W-160),80,244)}
+ c.save();c.setLineDash([5,8]);c.strokeStyle='rgba(120,95,60,.25)';c.lineWidth=1.5;c.beginPath();c.moveTo(70,312);c.lineTo(W-70,312);c.stroke();c.restore();
+ const top=350,bot=H-96;
+ if(notes.length){c.fillStyle=t[2];c.font='22px '+fs;c.fillText('这周写下的话',70,top);let y=top+40;const f=26,lf=20,gap=(bot-y-notes.reduce((a,k)=>a+30+wrap(days[k].note.trim(),f).length*f*1.55,0))/Math.max(1,notes.length);
+  notes.forEach(k=>{const L=wrap(days[k].note.trim(),f);c.fillStyle=t[2];c.font='bold '+lf+'px '+fs;const lb=`${md(k)} 周${WD[new Date(k+'T12:00').getDay()]}`;c.fillText(lb,70,y+lf);
+   if(im[k])c.drawImage(im[k],70+c.measureText(lb).width+8,y-3,lf*1.4,lf*1.4);y+=30;
+   c.fillStyle=ink;c.font=f+'px '+fs;L.forEach((l,j)=>{c.fillText((j===0?'“':' ')+l+(j===L.length-1?'”':''),76,y+f);y+=f*1.55});y+=Math.min(gap,46)})}
+ else{c.textAlign='center';c.fillStyle='#f4b860';c.font='40px '+fs;c.fillText('☁',W/2,520);c.fillStyle=ink;c.font='28px '+fs;c.fillText(fitTxt(c,enc[1],W-140),W/2,590);c.textAlign='left'}
+ c.textAlign='center';c.fillStyle=t[2];c.globalAlpha=.7;c.font='19px '+fs;c.fillText('⚡ 电量条',W/2,H-44);c.globalAlpha=1;c.textAlign='left';$('#wcardImgB').src=cv.toDataURL('image/png');
+ const b=$('#wself');b.classList.toggle('ph',!me);b.textContent=me?'':'✎ 点这里写一句（可以不写）'}
+let WKW=null;
+$('#wself').onclick=e=>{e.stopPropagation();const v=selfGet();$('#selfIn').value=v;$('#selfC').textContent=v.length+'/30';$('#selfDel').hidden=!v;$('#mSelf').classList.add('on');setTimeout(()=>$('#selfIn').focus(),350)};
+$('#selfIn').oninput=()=>$('#selfC').textContent=$('#selfIn').value.length+'/30';
+function selfDone(v){selfSet(v);$('#mSelf').classList.remove('on');if(WKW)drawWeekB(...WKW);vib()}
+$('#selfOk').onclick=()=>selfDone($('#selfIn').value.trim().slice(0,30));$('#selfDel').onclick=()=>selfDone('');
+$('#selfIn').onkeydown=e=>{if(e.key==='Enter')$('#selfOk').click()};
 function wToImg(){return $('#wcard').toDataURL('image/png')}
 $('#wsave').onclick=async()=>{const bk=$('#wflip').classList.contains('back'),u=$(bk?'#wcardB':'#wcard').toDataURL('image/png'),nm=bk?'这周写下的话.png':'这周的电量.png';
  try{if(navigator.canShare){const b=await (await fetch(u)).blob(),f=new File([b],nm,{type:'image/png'});if(navigator.canShare({files:[f]})){await navigator.share({files:[f]});return}}}catch(e){if(e&&e.name==='AbortError')return}
