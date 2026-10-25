@@ -66,10 +66,14 @@ h2{font-size:17px;margin:18px 0 8px;font-weight:700;display:flex;align-items:cen
 .conf{position:absolute;pointer-events:none;animation:conf .6s cubic-bezier(.15,.8,.35,1) forwards;z-index:3}
 @keyframes bub{from{opacity:.9;transform:translate(0,0) scale(.4)}to{opacity:0;transform:translate(var(--dx),-60px) scale(1.1)}}
 /* sheet */
-.mask{position:fixed;inset:0;background:rgba(150,120,90,.12);display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;z-index:20}
-.mask.on{opacity:1;pointer-events:auto}
-.sheet{width:100%;max-width:480px;background:var(--bg);border-top:2.5px solid var(--ink);border-radius:26px 22px 0 0;padding:20px 20px calc(env(safe-area-inset-bottom) + 20px);transform:translateY(100%);transition:transform .45s cubic-bezier(.2,1,.3,1);max-height:92%;overflow:auto}
-.mask.on .sheet{transform:none}
+.mask{position:fixed;inset:0;width:100vw;height:100%;background:rgba(90,70,50,.22);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);display:flex;align-items:flex-end;justify-content:center;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .32s ease,visibility 0s linear .45s;z-index:20;overscroll-behavior:contain}
+.mask.on{opacity:1;visibility:visible;pointer-events:auto;transition:opacity .28s ease}
+.sheet{position:relative;width:100%;max-width:480px;background:#fffcf6;border:none;border-radius:28px 28px 0 0;box-shadow:0 -10px 30px rgba(110,80,50,.16),0 -1px 0 rgba(110,80,50,.06);padding:12px 20px calc(env(safe-area-inset-bottom) + 20px);transform:translateY(105%);transition:transform .32s cubic-bezier(.4,0,.8,.4);max-height:92%;overflow:auto;overscroll-behavior:contain}
+.mask.on .sheet{transform:none;transition:transform .55s cubic-bezier(.22,1.25,.36,1)}
+.sheet>.grab{margin:0 auto 14px;cursor:grab;touch-action:none}
+body.lock{overflow:hidden;touch-action:none}
+.mask.on .sheet{touch-action:pan-y}
+@media (prefers-reduced-motion:reduce){.mask,.mask.on,.sheet,.mask.on .sheet{transition:opacity .15s linear!important}.sheet{transform:none}.mask:not(.on) .sheet{transform:none}}
 .sheet h3{margin:0 0 12px;font-size:18px}
 .inp{width:100%;font:inherit;font-size:16px;padding:11px 12px;border:2px solid var(--ink);border-radius:12px 15px 11px 14px;background:var(--card);color:var(--ink);outline:none}
 .seg{display:flex;gap:8px;margin:12px 0}
@@ -137,7 +141,7 @@ body{-webkit-user-select:none;user-select:none}textarea,input{-webkit-user-selec
 .ub{display:flex;align-items:center;gap:6px}.ub>svg{width:74px;height:26px}.ubolt{font-size:12px;color:#6f8fb3;font-weight:700;display:flex;align-items:center;gap:1px}
 .uxy{font-size:13px;color:var(--soft);font-weight:600}.um svg{width:28px;height:28px;display:block}
 #rtip{margin:8px 0 0;font-size:14px;font-weight:600;background:#e8f0f8;border:2px dashed #8fb0d2;border-radius:14px;padding:9px 12px}
-.grab{width:44px;height:5px;border-radius:3px;background:var(--ink);opacity:.25;margin:-8px auto 14px}
+.grab{width:42px;height:5px;border-radius:3px;background:var(--ink);opacity:.22;margin:0 auto 14px}
 #dayBody h3{display:flex;align-items:center;justify-content:space-between}.dm svg{width:34px;height:34px}
 .dbat{margin:6px -10px 0}.dbat svg{width:100%;display:block}.dsum{text-align:center;font-weight:700;font-size:17px;margin:4px 0 2px}.dtired{text-align:center;color:#5f7fa5;font-weight:600;margin:0 0 6px;font-size:14px}
 #dayBody h4{margin:14px 0 6px;font-size:13px;color:var(--soft)}.chips{display:flex;flex-wrap:wrap;gap:6px}.chips span{border:1.8px solid var(--ink);border-radius:12px 9px 13px 10px;padding:4px 10px;font-size:13px;background:var(--card)}
@@ -253,7 +257,7 @@ body{-webkit-user-select:none;user-select:none}textarea,input{-webkit-user-selec
  <button class="btn ghost" data-addmine style="margin-top:4px">＋ 加一件自己的小事</button>
  <div class="row"><button class="btn" data-close>好啦</button></div>
 </div></div>
-<div class="mask" id="mDay"><div class="sheet"><div class="grab"></div><div id="dayBody"></div></div></div>
+<div class="mask" id="mDay"><div class="sheet"><div id="dayBody"></div></div></div>
 <div class="mask" id="mSave"><div class="sheet preview">
  <h3>长按图片就能保存 / 分享</h3>
  <img id="saveImg" alt="今日电量卡片">
@@ -520,9 +524,13 @@ $('#wkPrev').onclick=()=>{wkOff--;renderWeek();vib()};$('#wkNext').onclick=()=>{
 $('#uback').onclick=()=>enterNight2();$('#cReview').onclick=openReview;
 function enterNight2(){if(mode==='am')go(D.start?'m2':'m1');else enterNight()}
 // 抽屉下滑关闭
+
+$$('.sheet').forEach(sh=>{if(!sh.querySelector(':scope>.grab')){const g=document.createElement('div');g.className='grab';sh.prepend(g)}});
+(function(){const sync=()=>document.body.classList.toggle('lock',!!document.querySelector('.mask.on'));$$('.mask').forEach(m=>new MutationObserver(sync).observe(m,{attributes:true,attributeFilter:['class']}))})();
 $$('.sheet').forEach(sh=>{let y0=null,dy=0;sh.addEventListener('touchstart',e=>{if(sh.scrollTop<=0){y0=e.touches[0].clientY;dy=0;sh.style.transition='none'}},{passive:true});
  sh.addEventListener('touchmove',e=>{if(y0==null)return;dy=Math.max(0,e.touches[0].clientY-y0);sh.style.transform=`translateY(${dy}px)`},{passive:true});
  sh.addEventListener('touchend',()=>{if(y0==null)return;sh.style.transition='';sh.style.transform='';if(dy>80)sh.closest('.mask').classList.remove('on');y0=null})});
+$$('.sheet>.grab').forEach(g=>{const sh=g.parentNode;let y0=null,dy=0;g.addEventListener('pointerdown',e=>{if(e.pointerType==='touch')return;y0=e.clientY;dy=0;sh.style.transition='none';g.setPointerCapture(e.pointerId)});g.addEventListener('pointermove',e=>{if(y0==null)return;dy=Math.max(0,e.clientY-y0);sh.style.transform=`translateY(${dy}px)`});g.addEventListener('pointerup',()=>{if(y0==null)return;sh.style.transition='';sh.style.transform='';if(dy>80||dy<4)sh.closest('.mask').classList.remove('on');y0=null})});
 document.head.insertAdjacentHTML('beforeend','<style>@keyframes grow{from{transform:scaleY(0)}to{transform:none}}body{-webkit-user-select:none;user-select:none}textarea,input{-webkit-user-select:text;user-select:text}@keyframes fadein{from{opacity:0}to{opacity:1}}</style>');
 $('#openReview').onclick=openReview;
 function refreshReviewBtn(){$('#openReview').hidden=recKeys().length<2}
