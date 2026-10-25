@@ -94,7 +94,7 @@ textarea.inp{resize:none;height:76px;line-height:1.5}
 .cardbox canvas{width:100%;border-radius:8px;display:block;filter:drop-shadow(3px 5px 0 rgba(74,63,53,.25))}
 .corner{position:absolute;top:calc(env(safe-area-inset-top) + 16px);right:18px}
 .chart svg{width:100%;overflow:visible}
-.wsum{font-size:14px;line-height:1.6;text-align:center;margin:6px 0 0;color:var(--ink)}.wsum .lk2{border:0;background:none;font:inherit;font-size:13px;color:var(--soft);padding:2px 4px;cursor:pointer;white-space:nowrap}.wsum .lk2:active{opacity:.6}.wsum .chg{display:inline;margin:0;padding:0 2px}
+.wsum{position:relative;font-size:14.5px;line-height:1.7;text-align:left;margin:8px 2px 0;padding:10px 14px 8px;background:rgba(255,252,244,.75);border:1px dashed rgba(120,95,60,.18);border-radius:16px 18px 15px 17px;color:var(--ink);text-wrap:pretty}.wsum:empty{display:none}.wsum .wh{font-size:12.5px;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}.wsum .wl{white-space:nowrap}.wsum .chg{background:none;border:0;font:inherit;color:#b98a1e;border-bottom:1.5px solid rgba(232,184,74,.55);padding:0 1px;cursor:pointer}.wsum .lk2{display:block;margin:0 0 0 auto;border:0;background:none;font:inherit;font-size:12.5px;color:var(--soft);padding:2px 0;cursor:pointer;white-space:nowrap}.wsum .lk2:active{opacity:.6}.wsum .chg{display:inline;margin:0;padding:0 2px}
 .tip{font-size:14px;line-height:1.6;text-align:center;margin-top:10px}
 .preview img{width:100%;border-radius:8px}
 .toast{position:fixed;left:50%;bottom:112px;transform:translate(-50%,30px);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:14px;font-size:14px;opacity:0;transition:.35s;z-index:40;pointer-events:none}
@@ -508,7 +508,7 @@ function drawCard(){const cv=$('#card'),c=cv.getContext('2d'),W=660,H=880,t=THEM
  const did=D.must.filter(m=>D.mustDone.includes(m.n)).map(m=>m.n);
  if(did.length){c.fillStyle=t[2];c.font='24px '+fs;yv=wrapText(c,'做了：'+did.join('、'),64,yv+56,W-128,36)}
  if(D.done.length){c.fillStyle=t[2];c.font='24px '+fs;yv=wrapText(c,'充了电：'+D.done.slice(0,4).join('、')+(D.done.length>4?' …':''),64,yv+42,W-128,36)}
- if(D.note){c.save();const ny=Math.min(Math.max(yv+34,560),H-230);c.fillStyle=t[4];c.globalAlpha=.55;rr(c,52,ny,W-104,120,20,6);c.fill();c.globalAlpha=1;c.strokeStyle=ink;c.lineWidth=3;c.stroke();c.fillStyle=ink;c.font='28px '+fs;wrapText(c,'“'+D.note+'”',80,ny+52,W-170,40);c.restore()}
+ if(D.note){c.save();const ny=Math.min(Math.max(yv+34,560),H-230);c.fillStyle=t[4];c.globalAlpha=.55;rr(c,52,ny,W-104,104,20,6);c.fill();c.globalAlpha=1;c.strokeStyle=ink;c.lineWidth=3;c.stroke();c.fillStyle=ink;c.font='28px '+fs;wrapText(c,'“'+D.note+'”',80,ny+52,W-170,40);c.restore()}
  if(D.mood){const img=new Image();img.onload=()=>c.drawImage(img,W-150,H-160,92,92);img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(moodSvg(D.mood,ink).replace('<svg','<svg xmlns="http://www.w3.org/2000/svg" width="92" height="92"'))}
  c.fillStyle=t[2];c.font='22px '+fs;c.fillText('低能量电量条 · 多巴胺菜单',64,H-52);cardToImg();setTimeout(cardToImg,200)}
 function cardToImg(){const u=$('#card').toDataURL('image/png');$('#cardImg').src=u;return u}
@@ -599,13 +599,13 @@ function enterNight(){if(D.night)go('c1');else if(!D.start)go('n0');else go('n1'
 function weekSum(ks){const rk=ks.filter(k=>days[k]&&days[k].start!=null),n=rk.length;let L=0,O=0;const cnt={};
  rk.forEach(k=>{const d=days[k],v=d.start-yOf(d);if(v>0)L++;else if(v<0)O++;d.must.filter(m=>d.mustDone.includes(m.n)).forEach(m=>cnt[m.n]=(cnt[m.n]||0)+1);d.done.forEach(t=>cnt[t]=(cnt[t]||0)+1)});
  const top=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]).slice(0,3),tone=O*2>n?'over':L*2>n?'good':'calm';
- const line=tone==='over'?'这阵子辛苦啦，可以让自己休息一下，多找点开心的事吧':tone==='good'?'这几天状态不错，继续保持呀':'这几天节奏刚刚好，慢慢来就好';
- return {rk,n,top,tone,line,head:`记了 ${n} 天`+(top.length?`，做得最多的是「${top[0]}」`:'')}}
+ const lines=tone==='over'?['这阵子辛苦啦，休息一下吧','去充充电，找点开心的事']:tone==='good'?['这几天状态不错','继续保持呀']:['这几天节奏刚刚好','慢慢来就好'],line=lines.join('，');
+ return {rk,n,top,tone,line,lines,head:`记了 ${n} 天`+(top.length?` · 做得最多的是「${top[0]}」`:'')}}
 function lastKs(){const a=[];for(let i=6;i>=0;i--){const d=new Date(TODAY+'T12:00');d.setDate(d.getDate()-i);a.push(dkey(d))}return a}
 function weekKs(mon){const a=[];for(let i=0;i<7;i++){const d=new Date(mon);d.setDate(d.getDate()+i);a.push(dkey(d))}return a}
 function renderSum(rk){const el=$('#wsum');if(wkOff!==0||!rk.length){el.innerHTML='';return}const w=weekSum(lastKs());
- const ln=w.tone==='over'?w.line.replace('多找点开心的事吧','<button class="chg" id="wchg"><u>充充电</u></button>，多找点开心的事吧'):w.line;
- el.innerHTML=`${esc(w.head)}<br>${ln} <button class="lk2" id="wopen">看周卡 ›</button>`;
+ const l2=w.tone==='over'?'去<button class="chg" id="wchg">充充电</button>，找点开心的事':w.lines[1];
+ el.innerHTML=`<div class="wh">${esc(w.head)}</div><div class="wl">${w.lines[0]}</div><div class="wl">${l2}</div><button class="lk2" id="wopen">看周卡 ›</button>`;
  const c=$('#wchg');if(c)c.onclick=()=>{renderMenu('#menuB');$('#mMenu').classList.add('on')};$('#wopen').onclick=()=>openWeek(weekKs(monOf(TODAY)))}
 let WKN='';
 function moodImg(m,ink){return new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(moodSvg(m,ink).replace('<svg','<svg xmlns="http://www.w3.org/2000/svg" width="88" height="88"'))})}
@@ -614,7 +614,7 @@ function drawWeek(ks,w,im){const cv=$('#wcard'),c=cv.getContext('2d'),W=660,H=96
  c.clearRect(0,0,W,H);c.fillStyle=t[5];c.fillRect(0,0,W,H);for(let i=0;i<900;i++){c.fillStyle=`rgba(120,90,60,${Math.random()*.07})`;c.fillRect(Math.random()*W,Math.random()*H,2,2)}
  c.lineWidth=5;c.strokeStyle=ink;c.lineJoin='round';rr(c,22,22,W-44,H-44,36,5);c.stroke();
  const md=k=>`${+k.slice(5,7)}/${+k.slice(8)}`;c.fillStyle=t[2];c.font='26px '+fs;c.fillText(`${md(ks[0])} – ${md(ks[6])} · 这周的电量`,64,96);
- c.fillStyle=ink;c.font='bold 40px '+fs;c.fillText(w.head.split('，')[0],64,156);
+ c.fillStyle=ink;c.font='bold 40px '+fs;c.fillText(w.head.split(' · ')[0],64,156);
  const base=350,u=20,slot=(W-128)/7,WD='一二三四五六日';
  c.save();c.globalAlpha=.6;c.lineWidth=3;c.beginPath();c.moveTo(56,base);c.quadraticCurveTo(W/2,base+3,W-56,base);c.stroke();c.restore();
  ks.forEach((k,i)=>{const cx=64+slot*i+slot/2;c.fillStyle=t[2];c.font='22px '+fs;c.textAlign='center';c.fillText('周'+WD[i],cx,base+150);
@@ -625,7 +625,7 @@ function drawWeek(ks,w,im){const cv=$('#wcard'),c=cv.getContext('2d'),W=660,H=96
   c.fillStyle=v>=0?ink:'#56708f';c.font='bold 24px '+fs;c.fillText(v>0?'+'+v:v<0?'−'+(-v):'0',cx,v>=0?base-h-12:base+h+30);c.textAlign='left';
   if(im[k])c.drawImage(im[k],cx-22,186,44,44)});
  let y=base+215;if(w.top.length){c.fillStyle=t[2];c.font='24px '+fs;c.fillText('做得最多的',64,y);y+=50;c.fillStyle=ink;c.font='30px '+fs;w.top.forEach((x,i)=>{c.fillText(`${i+1}. ${x}`,64,y);y+=46})}
- c.save();const ny=Math.max(y+14,H-260);c.fillStyle=t[4];c.globalAlpha=.55;rr(c,52,ny,W-104,120,20,6);c.fill();c.globalAlpha=1;c.lineWidth=3;c.strokeStyle=ink;c.stroke();c.fillStyle=ink;c.font='28px '+fs;wrapText(c,w.line,80,ny+48,W-160,40);c.restore();
+ c.save();const ny=Math.max(y+14,H-285);c.fillStyle=t[4];c.globalAlpha=.55;rr(c,52,ny,W-104,104,20,6);c.fill();c.globalAlpha=1;c.lineWidth=3;c.strokeStyle=ink;c.stroke();c.fillStyle=ink;c.font='28px '+fs;w.lines.forEach((l,i)=>c.fillText(l,80,ny+44+i*38));c.restore();
  c.fillStyle=t[2];c.font='22px '+fs;c.fillText('低能量电量条 · 多巴胺菜单',64,H-52);wToImg()}
 function wToImg(){const u=$('#wcard').toDataURL('image/png');$('#wcardImg').src=u;return u}
 $('#wsave').onclick=async()=>{const u=wToImg(),nm='这周的电量.png';
