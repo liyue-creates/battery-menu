@@ -143,7 +143,7 @@ body{-webkit-user-select:none;user-select:none}textarea,input{-webkit-user-selec
 #dayBody h4{margin:14px 0 6px;font-size:13px;color:var(--soft)}.chips{display:flex;flex-wrap:wrap;gap:6px}.chips span{border:1.8px solid var(--ink);border-radius:12px 9px 13px 10px;padding:4px 10px;font-size:13px;background:var(--card)}
 .dnote{margin-top:14px;background:var(--fill2);border:2px solid var(--ink);border-radius:14px 18px 12px 16px;padding:10px 14px;font-size:15px}
 .warm{background:var(--fill2);box-shadow:3px 4px 0 var(--ink);text-align:left;display:flex;gap:12px;align-items:flex-start}.warm .wi{font-size:26px;line-height:1}.warm b{margin-bottom:2px}
-.estb{border:1.5px dashed var(--soft);background:rgba(255,255,255,.55);color:var(--ink,#5a4a3a);border-radius:999px;padding:8px 14px;font:inherit;font-size:14px;cursor:pointer;transition:transform .12s}.estb:active{transform:scale(.95)}
+.estb,.chg{border:0;background:none;padding:4px 6px;font:inherit;font-size:14px;color:var(--soft,#8a7a6a);cursor:pointer;transition:opacity .15s,transform .12s}.estb:active,.chg:active{opacity:.6;transform:scale(.97)}.estb u,.chg u{text-decoration:none;color:#c9933a;border-bottom:1.5px solid rgba(232,184,90,.55)}.chg{display:block;margin:4px auto 0}
 </style>
 </head>
 <body>
@@ -442,9 +442,10 @@ function renderDid(){const rows=[];
 let Y=0;
 function renderUsed(y){Y=Math.max(0,Math.min(10,y));const X=D.start;
  $('#ubat').innerHTML=usedSVG(X,Y);$('#utext').textContent=sumText(X,Y);
- $('#utired').textContent=Y>X?'今天辛苦啦，好好抱抱自己':'';
+ $('#utired').innerHTML=Y>X?'今天辛苦啦，好好抱抱自己<button class="chg" id="chg">去<u>充充电</u>，找件喜欢的小事吧</button>':'';
+ if(Y>X)$('#chg').onclick=()=>$('#charge').click();
  const N=Math.min(10,defaultY(D)),h=$('#uhint');
- if(N>0&&Y!==N&&!fillT){h.innerHTML=`<button class="estb" id="estb">按打勾的事，大概 ${N} 格 · 点一下填上</button>`;$('#estb').onclick=()=>fillTo(N)}
+ if(N>0&&Y!==N&&!fillT){h.innerHTML=`<button class="estb" id="estb">按打勾的事，大概 <u>${N}</u> 格</button>`;$('#estb').onclick=()=>fillTo(N)}
  else if(!fillT)h.textContent=Y>=5&&Y<10?'满了还能继续往右拖 →':'';}
 let fillT=null;function fillTo(n){clearInterval(fillT);let y=Y;const d=n>y?1:-1;fillT=setInterval(()=>{y+=d;vib();renderUsed(y);if(y===n){clearInterval(fillT);fillT=null;D.actual=n;D.manual=true;save();renderUsed(n)}},140)}
 (function(){const w=$('#ubat');let drag=false;const px=e=>{const r=w.getBoundingClientRect();return (e.clientX-r.left)/r.width*UV.w+UV.l};
