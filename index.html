@@ -12,9 +12,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="电量条">
+<meta name="apple-mobile-web-app-title" content="今日电量">
 
-<title>低能量电量条 + 多巴胺菜单</title>
+<title>今日电量</title>
 <style>
 :root{--bg:#f6efe2;--ink:#4a3f35;--soft:#8a7b6c;--fill:#f4b860;--fill2:#f7d48a;--card:#fffaf0;--accent:#e98a6b;--paper-dot:rgba(120,90,60,.06)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -533,7 +533,7 @@ function drawCard(){const cv=$('#card'),c=cv.getContext('2d'),W=660,H=880,t=THEM
  if(D.done.length){c.fillStyle=t[2];c.font='24px '+fs;yv=wrapText(c,'充了电：'+D.done.slice(0,4).join('、')+(D.done.length>4?' …':''),64,yv+42,W-128,36)}
  if(D.note){c.save();const ny=Math.min(Math.max(yv+34,560),H-230);c.fillStyle=t[4];c.globalAlpha=.55;rr(c,52,ny,W-104,104,20,6);c.fill();c.globalAlpha=1;c.strokeStyle=ink;c.lineWidth=3;c.stroke();c.fillStyle=ink;c.font='28px '+fs;wrapText(c,'“'+D.note+'”',80,ny+52,W-170,40);c.restore()}
  if(D.mood){const img=new Image();img.onload=()=>c.drawImage(img,W-150,H-160,92,92);img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(moodSvg(D.mood,ink).replace('<svg','<svg xmlns="http://www.w3.org/2000/svg" width="92" height="92"'))}
- c.fillStyle=t[2];c.font='22px '+fs;c.fillText('低能量电量条 · 多巴胺菜单',64,H-52);cardToImg();setTimeout(cardToImg,200)}
+ c.fillStyle=t[2];c.font='22px '+fs;c.fillText('今日电量 · 多巴胺菜单',64,H-52);cardToImg();setTimeout(cardToImg,200)}
 function cardToImg(){const u=$('#card').toDataURL('image/png');$('#cardImg').src=u;return u}
 $('#save').onclick=async()=>{const u=cardToImg(),nm=(DK===YEST?'昨天':'今日')+'电量卡片.png';
  try{if(navigator.canShare){const b=await (await fetch(u)).blob(),f=new File([b],nm,{type:'image/png'});if(navigator.canShare({files:[f]})){await navigator.share({files:[f]});return}}}catch(e){if(e&&e.name==='AbortError')return}
@@ -683,7 +683,7 @@ function drawWeek(ks,w,im){const cv=$('#wcard'),W=660,H=880;cv.width=W;cv.height
    c.fillStyle=ink;c.font=(i===0?'bold ':'')+'26px '+fs;c.textAlign='left';const nn='×'+cnt[x];c.fillText(fitTxt(c,x,W-330),130,cy+33);
    c.textAlign='right';c.fillStyle='#b0811a';c.font='bold 24px '+fs;c.fillText(nn,W-96,cy+33);
    if(i<w.top.length-1){c.save();c.setLineDash([4,7]);c.strokeStyle='rgba(120,95,60,.22)';c.lineWidth=1.5;c.beginPath();c.moveTo(130,cy+48);c.lineTo(W-96,cy+48);c.stroke();c.restore()}})}
- c.textAlign='center';c.fillStyle=t[2];c.globalAlpha=.7;c.font='19px '+fs;c.fillText('⚡ 电量条',W/2,H-44);c.globalAlpha=1;c.textAlign='left';$('#wcardImg').src=cv.toDataURL('image/png')}
+ c.textAlign='center';c.fillStyle=t[2];c.globalAlpha=.7;c.font='19px '+fs;c.fillText('⚡ 今日电量',W/2,H-44);c.globalAlpha=1;c.textAlign='left';$('#wcardImg').src=cv.toDataURL('image/png')}
 const ENC={'轻轻记录周':['愿意停下来看看自己，就已经很棒啦','每一次记录，都是在好好陪自己'],
  '充电小能手周':['你很会照顾自己，这份温柔要一直留着','开心的小事，一件一件都算数'],
  '满格活力周':['这周的你亮晶晶的','带着这份能量，继续往前走吧'],
@@ -712,7 +712,7 @@ function drawWeekB(ks,w,im){const cv=$('#wcardB'),W=660,H=880,t=THEMES[2],ink=t[
    if(im[k])c.drawImage(im[k],70+c.measureText(lb).width+8,y-3,lf*1.4,lf*1.4);y+=30;
    c.fillStyle=ink;c.font=f+'px '+fs;L.forEach((l,j)=>{c.fillText((j===0?'“':' ')+l+(j===L.length-1?'”':''),76,y+f);y+=f*1.55});y+=Math.min(gap,46)})}
  else{c.textAlign='center';c.fillStyle='#f4b860';c.font='40px '+fs;c.fillText('☁',W/2,520);c.fillStyle=ink;c.font='28px '+fs;c.fillText(fitTxt(c,enc[1],W-140),W/2,590);c.textAlign='left'}
- c.textAlign='center';c.fillStyle=t[2];c.globalAlpha=.7;c.font='19px '+fs;c.fillText('⚡ 电量条',W/2,H-44);c.globalAlpha=1;c.textAlign='left';$('#wcardImgB').src=cv.toDataURL('image/png');
+ c.textAlign='center';c.fillStyle=t[2];c.globalAlpha=.7;c.font='19px '+fs;c.fillText('⚡ 今日电量',W/2,H-44);c.globalAlpha=1;c.textAlign='left';$('#wcardImgB').src=cv.toDataURL('image/png');
  const b=$('#wself');b.classList.toggle('ph',!me);b.textContent=me?'':'✎ 点这里写一句（可以不写）'}
 let WKW=null;
 $('#wself').onclick=e=>{e.stopPropagation();const v=selfGet();$('#selfIn').value=v;$('#selfC').textContent=v.length+'/30';$('#selfDel').hidden=!v;$('#mSelf').classList.add('on');setTimeout(()=>$('#selfIn').focus(),350)};
