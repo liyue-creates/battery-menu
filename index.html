@@ -401,6 +401,7 @@ const doneSum=d=>Math.min(10,(d.must||[]).filter(m=>(d.mustDone||[]).includes(m.
 const defaultY=d=>doneSum(d);
 const yOf=d=>d.actual!=null?d.actual:defaultY(d); // 估值
 const isEst=d=>d.actual==null;
+const hasRec=d=>!!d&&(d.start!=null||(d.done||[]).length>0||(d.mustDone||[]).length>0),hasE=d=>!!d&&d.start!=null;
 const sumText=(x,y)=>y==null?`今天 ${x} 格电`:`今天 ${x} 格电，用了 ${y} 格`;
 function theme(l){const t=THEMES[ik(l)],r=document.documentElement.style;['--bg','--ink','--soft','--fill','--fill2','--card'].forEach((v,i)=>r.setProperty(v,t[i]));document.querySelector('meta[name=theme-color]').content=t[0]}
 let undoFn=null;function toast(t,u){const e=$('#toast');$('#toastT').textContent=t;undoFn=u||null;$('#undo').hidden=!u;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>{e.classList.remove('on');undoFn=null},u?4000:1800)}
@@ -537,7 +538,8 @@ function initN3(){$('#moods').innerHTML=MOODS.map(m=>`<div class="mood hand ${D.
  $('#moods').querySelectorAll('.mood').forEach(el=>el.onclick=()=>{D.mood=D.mood===el.dataset.m?null:el.dataset.m;save();$$('#moods .mood').forEach(x=>x.classList.toggle('on',x.dataset.m===D.mood));vib()});
  $('#note').value=D.note||''}
 $('#note').oninput=e=>{D.note=e.target.value;save()};
-function finishNight(){if(D.actual==null)D.actual=Y;if(DK===YEST)setTimeout(()=>toast('昨天补好啦'),300);D.night=true;save();go('c1');if(DK===TODAY&&new Date(TODAY+'T12:00').getDay()===0)autoWeek(true)}
+function finishNight(){if(D.actual==null)D.actual=Y;if(DK===YEST)setTimeout(()=>toast('昨天补好啦'),300);D.night=true;save();go('c1');if(DK===TODAY&&new Date(TODAY+'T12:00').getDay()===0)wkPend=true}
+let wkPend=false;
 
 /* ---------- 卡片 ---------- */
 function drawCard(){const cv=$('#card'),c=cv.getContext('2d'),W=660,H=880,t=THEMES[ik(D.start)],ink=t[1];
@@ -569,7 +571,7 @@ $('#save').onclick=async()=>{const u=cardToImg(),nm=(DK===YEST?'昨天':'今日'
 $('#edit').onclick=()=>{D.night=false;save();go('n1')};
 
 /* ---------- 回顾 + 复盘 ---------- */
-const recKeys=()=>Object.keys(days).filter(k=>days[k].start!=null).sort();
+const recKeys=()=>Object.keys(days).filter(k=>hasRec(days[k])).sort();
 let wkOff=0;
 function monOf(k){const d=new Date(k+'T12:00');d.setDate(d.getDate()-((d.getDay()+6)%7));return d}
 function miniBat(X,Y){const ex=Math.max(0,Y-5);let s='<svg viewBox="0 0 74 26"><rect x="1" y="1" width="64" height="24" rx="6" fill="var(--card)" stroke="var(--ink)" stroke-width="2"/><rect x="66" y="8" width="5" height="10" rx="2" fill="var(--ink)"/>';
@@ -577,17 +579,18 @@ function miniBat(X,Y){const ex=Math.max(0,Y-5);let s='<svg viewBox="0 0 74 26"><
  s+='</svg>';if(ex)s+=`<span class="ubolt"><svg viewBox="0 0 11 16" width="10" height="14"><path d="${BP}" fill="#c3dbf0" stroke="#6f8fb3" stroke-width=".8"/></svg>×${ex}</span>`;return s}
 function openReview(){wkOff=0;renderWeek();go('u1');autoWeek(false)}
 function renderWeek(){const ks=[];for(let i=6;i>=0;i--){const d=new Date(TODAY+'T12:00');d.setDate(d.getDate()-i+wkOff*7);ks.push(dkey(d))}
- const rk=ks.filter(k=>days[k]&&days[k].start!=null);
+ const rk=ks.filter(k=>hasRec(days[k]));
  $('#wkLbl').textContent=wkOff===0?'最近 7 天':`${+ks[0].slice(5,7)}/${+ks[0].slice(8)} – ${+ks[6].slice(5,7)}/${+ks[6].slice(8)}`;
  const older=recKeys().some(k=>k<ks[0]);$('#wkPrev').textContent=wkOff<0?'‹ 回到最近':'看更早 ›';$('#wkPrev').style.visibility=(older||wkOff<0)?'':'hidden';
  const WD='日一二三四五六';
  $('#utab').innerHTML=rk.map(k=>{const d=days[k];const X=d.start,Y=yOf(d),est=isEst(d)&&!d.night;
+  if(!hasE(d))return `<button class="urow ${k===TODAY?'today':''}" data-k="${k}"><span class="ud"><b>${+k.slice(5,7)}/${+k.slice(8)}</b><i>${k===TODAY?'今天':'周'+WD[new Date(k+'T12:00').getDay()]}</i></span><span class="ub" style="display:grid;place-items:center">${icon('heart')}</span><span class="uxy">充了 ${(d.done||[]).length+(d.mustDone||[]).length} 次电</span><span class="um">${d.mood?moodSvg(d.mood):''}</span></button>`;
   return `<button class="urow ${k===TODAY?'today':''}" data-k="${k}"><span class="ud"><b>${+k.slice(5,7)}/${+k.slice(8)}</b><i>${k===TODAY?'今天':'周'+WD[new Date(k+'T12:00').getDay()]}</i></span><span class="ub" style="${est?'opacity:.45':''}">${miniBat(X,Y)}</span><span class="uxy">${X} 格电，用了 ${Y} 格</span><span class="um">${d.mood?moodSvg(d.mood):''}</span></button>`}).join('');
  $$('#utab .urow').forEach(b=>b.onclick=()=>openDay(b.dataset.k));requestAnimationFrame(()=>{const sc=$('.uscroll');sc.scrollTop=sc.scrollHeight});
  if(!rk.length){$('#ustrip').innerHTML='<div class="ce">这几天还没有记录</div>';return}
  const W=340,H=230,base=112,u=14,n=rk.length,slot=Math.min(48,(W-20)/n),x0=(W-slot*n)/2,bw=Math.min(28,slot*.6);
  let g=`<svg viewBox="0 0 ${W} ${H}"><text x="8" y="44" font-size="10" fill="var(--soft)">剩下的电</text><text x="8" y="${H-30}" font-size="10" fill="#6f8fb3">超出的</text><path d="M6 ${base} Q${W/2} ${base+1.5} ${W-6} ${base}" stroke="var(--ink)" stroke-width="2" fill="none" opacity=".6"/>`;
- rk.forEach((k,i)=>{const d=days[k],X=d.start,Y=yOf(d),v=X-Y,cx=x0+slot*i+slot/2,h=Math.max(4,Math.min(5,Math.abs(v))*u),x=cx-bw/2,dl=i*.06;
+ rk.forEach((k,i)=>{const d=days[k],X=d.start,Y=yOf(d),v=X-Y,cx=x0+slot*i+slot/2;if(!hasE(d)){g+=icon('heart','#d98b8b').replace('<svg',`<svg x="${cx-10}" y="${base-24}" width="20" height="20"`)+`<text x="${cx}" y="${H-6}" text-anchor="middle" font-size="11" fill="${k===TODAY?'var(--ink)':'var(--soft)'}" font-weight="${k===TODAY?700:400}">${k===TODAY?'今天':(+k.slice(5,7))+'/'+(+k.slice(8))}</text>`;return}const h=Math.max(4,Math.min(5,Math.abs(v))*u),x=cx-bw/2,dl=i*.06;
   if(v>=0)g+=`<rect class="bar" style="transform-origin:bottom;animation-delay:${dl}s" x="${x}" y="${base-h}" width="${bw}" height="${h}" rx="6" fill="var(--fill)" stroke="var(--ink)" stroke-width="2.2"/>`;
   else g+=`<rect class="bar" style="transform-origin:top;animation-delay:${dl}s" x="${x}" y="${base}" width="${bw}" height="${h}" rx="6" fill="#d4e4f3" stroke="#6f8fb3" stroke-width="2" stroke-dasharray="5 3"/>`;
   const ny=v>=0?base-h-6:base+h+14;g+=`<text x="${cx}" y="${ny}" text-anchor="middle" font-size="12" font-weight="700" fill="${v>=0?'var(--ink)':'#56708f'}">${v>0?'+'+v:v<0?'−'+(-v):'0'}</text>`;
@@ -597,13 +600,13 @@ function renderWeek(){const ks=[];for(let i=6;i>=0;i--){const d=new Date(TODAY+'
 function openDay(k){const d=days[k],X=d.start,Y=yOf(d),WD='日一二三四五六',dt=new Date(k+'T12:00');
  const did=d.must.filter(m=>d.mustDone.includes(m.n)).map(m=>m.n);
  $('#dayBody').innerHTML=`<h3>${+k.slice(5,7)}月${+k.slice(8)}日 · 周${WD[dt.getDay()]} ${d.mood?`<span class="dm">${moodSvg(d.mood)}</span>`:''}</h3>
- <div class="dbat hand">${usedSVG(X,Y).replace(/data-bolt="\d"/g,'')}</div>
- <p class="dsum">${esc(sumText(X,Y))}${isEst(d)&&!d.night?' <span class="est">（估的）</span>':''}</p>${Y>X?'<p class="dtired">今天辛苦啦，好好抱抱自己</p>':''}
+ ${X==null?'<p class="dsum" style="font-size:15px;color:var(--soft)">这天记下了几件充电的小事 ♡</p>':`<div class="dbat hand">${usedSVG(X,Y).replace(/data-bolt="\d"/g,'')}</div>
+ <p class="dsum">${esc(sumText(X,Y))}${isEst(d)&&!d.night?' <span class="est">（估的）</span>':''}</p>${Y>X?'<p class="dtired">今天辛苦啦，好好抱抱自己</p>':''}`}
  ${did.length?`<h4>做了</h4><div class="chips">${did.map(t=>`<span>${esc(t)}</span>`).join('')}</div>`:''}
  ${d.done.length?`<h4>充了电</h4><div class="chips">${d.done.map(t=>`<span>${esc(t)}</span>`).join('')}</div>`:''}
  ${d.note?`<div class="dnote">“${esc(d.note)}”</div>`:''}
  ${k===TODAY||k===YEST?`<div class="row"><button class="btn ghost" data-close>好啦</button><button class="btn" id="dEdit">改一改</button></div>`:`<div class="row"><button class="btn" data-close>好啦</button></div>`}`;
- const de=$('#dEdit');if(de)de.onclick=()=>{$('#mDay').classList.remove('on');DK=k;D=getDay(k);D.night=false;save();if(D.start)theme(D.start);go('n1')};
+ const de=$('#dEdit');if(de)de.onclick=()=>{$('#mDay').classList.remove('on');DK=k;D=getDay(k);D.night=false;save();if(D.start){theme(D.start);go('n1')}else go('n0')};
  $('#mDay').classList.add('on')}
 $('#wkPrev').onclick=()=>{wkOff=wkOff<0?0:-1;if(wkOff<0){while(wkOff>-60&&!recKeys().some(k=>{const d=new Date(TODAY+'T12:00');d.setDate(d.getDate()+wkOff*7);const e=dkey(d);d.setDate(d.getDate()-6);return k>=dkey(d)&&k<=e}))wkOff--}renderWeek();vib()};
 $('#uback').onclick=()=>enterNight2();$('#cReview').onclick=openReview;
@@ -624,7 +627,7 @@ function refreshReviewBtn(){$('#openReview').hidden=recKeys().length<2}
 /* ---------- 导航 ---------- */
 const ALL=['m1','m2','n0','n1','n2','n3','c1','u1'];let cur=null,mode='am';
 function setMode(m){mode=m;$$('#sw button').forEach(b=>b.classList.toggle('on',b.dataset.m===m))}
-function go(id){if((id==='m1'||id==='m2')&&DK!==TODAY){DK=TODAY;D=getDay(DK);st.level=D.start||3}const idx=ALL.indexOf(id),ci=ALL.indexOf(cur);ALL.forEach((s,k)=>{const e=$('#'+s);e.classList.toggle('on',s===id);e.classList.toggle('left',k<idx)});cur=id;$('#'+id).scrollTop=0;const ap=$('.app');if(ap)ap.scrollLeft=0;
+function go(id){if(cur==='c1'&&id!=='c1'&&wkPend){wkPend=false;setTimeout(()=>autoWeek(true,450),0)}if((id==='m1'||id==='m2')&&DK!==TODAY){DK=TODAY;D=getDay(DK);st.level=D.start||3}const idx=ALL.indexOf(id),ci=ALL.indexOf(cur);ALL.forEach((s,k)=>{const e=$('#'+s);e.classList.toggle('on',s===id);e.classList.toggle('left',k<idx)});cur=id;$('#'+id).scrollTop=0;const ap=$('.app');if(ap)ap.scrollLeft=0;
  if(id!=='u1')setMode(id[0]==='m'?'am':'pm');if(D.start)theme(D.start);
  if(id==='m1')initBat('#bat','#msg');
  if(id==='m2'){renderMini();renderTags('#tags','m');renderMenu('#menuA')}
@@ -647,11 +650,11 @@ function enterNight(){if(D.night)go('c1');else if(!D.start)go('n0');else go('n1'
 
 
 /* ---------- 每周小结 + 周卡 ---------- */
-function weekSum(ks){const rk=ks.filter(k=>days[k]&&days[k].start!=null),n=rk.length;let L=0,O=0;const cnt={};
- rk.forEach(k=>{const d=days[k],v=d.start-yOf(d);if(v>0)L++;else if(v<0)O++;d.must.filter(m=>d.mustDone.includes(m.n)).forEach(m=>cnt[m.n]=(cnt[m.n]||0)+1);d.done.forEach(t=>cnt[t]=(cnt[t]||0)+1)});
- const top=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]).slice(0,3),tone=O*2>n?'over':L*2>n?'good':'calm';
+function weekSum(ks){const rk=ks.filter(k=>hasRec(days[k])),n=rk.length,ek=rk.filter(k=>hasE(days[k])),ne=ek.length;let L=0,O=0;const cnt={};
+ rk.forEach(k=>{const d=days[k];if(hasE(d)){const v=d.start-yOf(d);if(v>0)L++;else if(v<0)O++}d.must.filter(m=>d.mustDone.includes(m.n)).forEach(m=>cnt[m.n]=(cnt[m.n]||0)+1);d.done.forEach(t=>cnt[t]=(cnt[t]||0)+1)});
+ const top=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]).slice(0,3),tone=ne&&O*2>ne?'over':ne&&L*2>ne?'good':'calm';
  const lines=tone==='over'?['这阵子辛苦啦，休息一下吧','去充充电，找点开心的事']:tone==='good'?['这几天状态不错','继续保持呀']:['这几天节奏刚刚好','慢慢来就好'],line=lines.join('，');
- return {rk,n,top,tone,line,lines,head:`记了 ${n} 天`+(top.length?` · 做得最多的是「${top[0]}」`:'')}}
+ return {rk,ek,n,top,tone,line,lines,head:`记了 ${n} 天`+(top.length?` · 做得最多的是「${top[0]}」`:'')}}
 function lastKs(){const a=[];for(let i=6;i>=0;i--){const d=new Date(TODAY+'T12:00');d.setDate(d.getDate()-i);a.push(dkey(d))}return a}
 function weekKs(mon){const a=[];for(let i=0;i<7;i++){const d=new Date(mon);d.setDate(d.getDate()+i);a.push(dkey(d))}return a}
 function renderSum(rk){const el=$('#wsum');if(!el)return;if(wkOff!==0||!rk.length){el.remove();return}const w=weekSum(lastKs());
@@ -660,9 +663,9 @@ function renderSum(rk){const el=$('#wsum');if(!el)return;if(wkOff!==0||!rk.lengt
  const c=$('#wchg');if(c)c.onclick=()=>{renderMenu('#menuB');$('#mMenu').classList.add('on')};$('#wopen').onclick=()=>openWeek(weekKs(monOf(TODAY)))}
 let WKN='';
 function moodImg(m,ink){return new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(moodSvg(m,ink).replace('<svg','<svg xmlns="http://www.w3.org/2000/svg" width="88" height="88"'))})}
-function weekTitle(w,ks){const n=w.n;let L=0,O=0,M=0;w.rk.forEach(k=>{const d=days[k],v=d.start-yOf(d);if(v>0)L++;else if(v<0)O++;M+=(d.done||[]).length});
- if(n<=2)return['轻轻记录周','记下来就很好'];if(M>=5)return['充电小能手周','很会照顾自己'];if(L*2>=n&&!O)return['满格活力周','电量满满，状态在线'];
- if(L>O)return['元气满满周','电还有剩，节奏不错'];if(O*2>=n)return['努力小电池周','认真用了很多电，记得充充电'];return['慢慢充电周','慢慢来，刚刚好']}
+function weekTitle(w,ks){const n=w.n,ne=w.ek.length;let L=0,O=0,M=0;w.rk.forEach(k=>{const d=days[k];if(hasE(d)){const v=d.start-yOf(d);if(v>0)L++;else if(v<0)O++}M+=(d.done||[]).length});
+ if(n<=2)return['轻轻记录周','记下来就很好'];if(M>=5)return['充电小能手周','很会照顾自己'];if(ne&&L*2>=ne&&!O)return['满格活力周','电量满满，状态在线'];
+ if(L>O)return['元气满满周','电还有剩，节奏不错'];if(ne&&O*2>=ne)return['努力小电池周','认真用了很多电，记得充充电'];return['慢慢充电周','慢慢来，刚刚好']}
 const FB={'轻轻记录周':['记下来就很棒，下周再多记一两天吧','每次打开都算数，明天也来看看自己呀','先从记录开始，慢慢就有自己的节奏啦'],
  '充电小能手周':['这周也有好好照顾自己哦～','「{t}」给你充了好多电，下周也安排上吧','会给自己充电的你，真可爱～'],
  '满格活力周':['超棒的！把喜欢的事继续留在日程里','状态亮晶晶，下周也按这个节奏来吧'],
@@ -698,14 +701,14 @@ function drawWeek(ks,w,im){const cv=$('#wcard'),W=660,H=880;cv.width=W;cv.height
  c.fillStyle=t[2];c.font='22px '+fs;c.fillText(fitTxt(c,td,W-250),206,196);{const fbt=wkFb(tt,w,ks);let z=21;c.font=z+'px '+fs;while(z>15&&c.measureText(fbt).width>W-250){z--;c.font=z+'px '+fs}c.fillStyle='#b0811a';c.fillText(fitTxt(c,fbt,W-250),206,232)}
  const base=405,u=24,rk=w.rk,n=rk.length,x0=n>1?118:W/2,sp=n>1?(W-236)/(n-1):0;
  c.save();rr(c,52,250,W-104,350,26,0);c.fillStyle='rgba(255,255,255,.45)';c.fill();c.restore();
- const P=rk.map((k,i)=>{const d=days[k],v=d.start-yOf(d);return{k,v,x:x0+sp*i,y:base-Math.max(-4,Math.min(4,v))*u}});
+ const P=rk.map((k,i)=>{const d=days[k],v=hasE(d)?d.start-yOf(d):null;return{k,v,x:x0+sp*i,y:base-Math.max(-4,Math.min(4,v||0))*u}}),PE=P.filter(p=>p.v!=null),ne=PE.length;
  c.save();c.setLineDash([8,8]);c.lineWidth=2;c.strokeStyle='rgba(138,123,108,.6)';c.beginPath();c.moveTo(76,base);c.lineTo(W-76,base);c.stroke();c.restore();
- const path=()=>{c.beginPath();c.moveTo(P[0].x,P[0].y);for(let i=1;i<P.length;i++){const a=P[i-1],b=P[i],mx=(a.x+b.x)/2;c.bezierCurveTo(mx,a.y,mx,b.y,b.x,b.y)}};
- if(n>1){[[0,base,'#f7d48a'],[base,H,'#d4e4f3']].forEach(([y0,y1,col])=>{c.save();c.beginPath();c.rect(0,y0,W,y1-y0);c.clip();path();c.lineTo(P[n-1].x,base);c.lineTo(P[0].x,base);c.closePath();c.fillStyle=col;c.globalAlpha=.7;c.fill();c.restore()});
+ const path=()=>{c.beginPath();c.moveTo(PE[0].x,PE[0].y);for(let i=1;i<PE.length;i++){const a=PE[i-1],b=PE[i],mx=(a.x+b.x)/2;c.bezierCurveTo(mx,a.y,mx,b.y,b.x,b.y)}};
+ if(ne>1){[[0,base,'#f7d48a'],[base,H,'#d4e4f3']].forEach(([y0,y1,col])=>{c.save();c.beginPath();c.rect(0,y0,W,y1-y0);c.clip();path();c.lineTo(PE[ne-1].x,base);c.lineTo(PE[0].x,base);c.closePath();c.fillStyle=col;c.globalAlpha=.7;c.fill();c.restore()});
   path();c.lineWidth=5;c.strokeStyle=ink;c.lineCap='round';c.stroke();c.globalAlpha=.3;c.lineWidth=2;c.translate(1.5,2);path();c.stroke();c.setTransform(1,0,0,1,0,0);c.globalAlpha=1}
  c.textAlign='center';const fr=n>5?18:21;P.forEach(p=>{c.fillStyle='#fffaf0';c.beginPath();c.arc(p.x,p.y,fr,0,7);c.fill();c.lineWidth=3;c.strokeStyle=ink;c.stroke();
   if(im[p.k])c.drawImage(im[p.k],p.x-fr+2,p.y-fr+2,fr*2-4,fr*2-4);
-  const up=p.v>=0;c.fillStyle=up?'#b0811a':'#5b84b1';c.font='bold 24px '+fs;c.fillText(p.v>0?'+'+p.v:p.v<0?'−'+(-p.v):'0',p.x,up?p.y-fr-10:p.y+fr+26);
+  if(p.v==null){c.fillStyle='#d98b8b';c.font='bold 22px '+fs;c.fillText('♡',p.x,p.y-fr-10)}else{const up=p.v>=0;c.fillStyle=up?'#b0811a':'#5b84b1';c.font='bold 24px '+fs;c.fillText(p.v>0?'+'+p.v:p.v<0?'−'+(-p.v):'0',p.x,up?p.y-fr-10:p.y+fr+26)}
   c.fillStyle=t[2];c.font='19px '+fs;c.fillText(md(p.k),p.x,580)});
  let y=640;if(w.top.length){const cnt=wCnt(rk);c.textAlign='left';c.fillStyle=t[2];c.font='21px '+fs;c.fillText('做得最多',96,y);y+=14;
   w.top.forEach((x,i)=>{const cy=y+i*50;c.fillStyle=i===0?'#f4b860':'#f7e3b5';c.beginPath();c.arc(108,cy+24,7,0,7);c.fill();
@@ -754,8 +757,8 @@ $('#wsave').onclick=async()=>{const bk=$('#wflip').classList.contains('back'),u=
  try{if(navigator.canShare){const b=await (await fetch(u)).blob(),f=new File([b],nm,{type:'image/png'});if(navigator.canShare({files:[f]})){await navigator.share({files:[f]});return}}}catch(e){if(e&&e.name==='AbortError')return}
  const a=document.createElement('a');a.href=u;a.download=nm;document.body.appendChild(a);a.click();a.remove();toast('存好啦')};
 // 自动弹：周日晚上记完；或周日之后第一次打开用量页（上周记过≥1天）
-function autoWeek(sunday){const mon=monOf(TODAY);if(!sunday)mon.setDate(mon.getDate()-7);const ks=weekKs(mon),seen=LS.get('wkSeen')||'';
- if(seen>=ks[0]||!ks.some(k=>days[k]&&days[k].start!=null))return;LS.set('wkSeen',ks[0]);setTimeout(()=>openWeek(ks),sunday?1400:600)}
+function autoWeek(sunday,dl){const mon=monOf(TODAY);if(!sunday)mon.setDate(mon.getDate()-7);const ks=weekKs(mon),seen=LS.get('wkSeen')||'';
+ if(seen>=ks[0]||!ks.some(k=>hasRec(days[k])))return;LS.set('wkSeen',ks[0]);setTimeout(()=>openWeek(ks),dl!=null?dl:sunday?1400:600)}
 /* ---------- 启动 ---------- */
 (function(){const y=days[YEST];st.tired=!!(y&&y.start!=null&&yOf(y)>y.start);
  const wh=st.tired?`<div class="warm hand"><span class="wi">🫶</span><div><b>昨天辛苦啦</b>今天慢慢来，菜单里多放了几件轻松的小事 ☁️</div></div>`:'';$('#warm').innerHTML=wh;$('#warm2').innerHTML=wh.replace('class="warm','style="margin:0 0 14px" class="warm');
