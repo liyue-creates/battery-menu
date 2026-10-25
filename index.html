@@ -100,13 +100,15 @@ body.lock{overflow:hidden;touch-action:none}
 .mood.on{background:var(--fill);transform:scale(1.12) rotate(-4deg)}
 textarea.inp{resize:none;height:76px;line-height:1.5}
 /* card */
-.wflip{perspective:1400px;width:min(100%,290px,calc((100dvh - 200px)*.75));margin:4px auto 0;cursor:pointer;aspect-ratio:660/880}
-.wfin{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .75s cubic-bezier(.3,1.35,.45,1)}
-.wflip.back .wfin{transform:rotateY(180deg)}
-.wface{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:10px;filter:drop-shadow(0 6px 14px rgba(74,63,53,.16)) drop-shadow(0 1px 2px rgba(74,63,53,.12))}
-.wface img{width:100%;display:block;border-radius:10px;-webkit-touch-callout:default;-webkit-user-select:auto;user-select:auto}
-.wb{transform:rotateY(180deg);overflow:hidden}
-.wflip:active .wfin{scale:.98}
+.wflip{-webkit-perspective:1400px;perspective:1400px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:transform .15s;width:min(100%,290px,calc((100dvh - 200px)*.75));margin:4px auto 0;cursor:pointer;aspect-ratio:660/880}
+.wfin{position:relative;width:100%;height:100%;-webkit-transform-style:preserve-3d;transform-style:preserve-3d;transition:transform .75s cubic-bezier(.3,1.35,.45,1)}
+.wflip.back .wfin{-webkit-transform:rotateY(180deg);transform:rotateY(180deg)}
+.wface{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:10px;-webkit-transform:rotateY(0deg) translateZ(1px);transform:rotateY(0deg) translateZ(1px)}
+.wface img{width:100%;display:block;border-radius:10px;box-shadow:0 6px 14px rgba(74,63,53,.16),0 1px 2px rgba(74,63,53,.12);-webkit-touch-callout:default;-webkit-user-select:auto;user-select:auto}
+#mWeek .sheet{overflow:visible}
+.wface{transition:visibility 0s linear .28s}.wflip:not(.back) .wb,.wflip.back .wf{visibility:hidden}
+.wface.wb{-webkit-transform:rotateY(180deg) translateZ(1px);transform:rotateY(180deg) translateZ(1px)}
+.wflip:active{transform:scale(.98)}
 .wself{position:absolute;left:8.5%;top:19.3%;width:83%;height:10.4%;border:0;border-radius:12px;background:transparent;font:inherit;color:#a8988a;font-size:14px;text-align:left;padding:0 0 0 4%;cursor:text;pointer-events:none;-webkit-tap-highlight-color:transparent}
 .wflip.back .wself{pointer-events:auto}
 .wself.ph{background:#fffaf0;border:1.5px dashed rgba(138,123,108,.45)}
@@ -678,7 +680,12 @@ function wkFb(tt,w,ks){const a=FB[tt]||FB['慢慢充电周'];let h=0;for(const c
 async function openWeek(ks){WKN=ks[0];const w=weekSum(ks),ink=THEMES[2][1],im={};for(const k of ks){const d=days[k];if(d&&d.mood)im[k]=await moodImg(d.mood,ink)}
  WKW=[ks,w,im];drawWeek(ks,w,im);drawWeekB(ks,w,im);const f=$('#wflip');f.classList.remove('back');$('.wb').scrollTop=0;
  $('#wfhint').style.visibility=LS.get('wkFlipped')?'hidden':'';$('#mWeek').classList.add('on')}
-$('#wflip').onclick=()=>{const f=$('#wflip');f.classList.toggle('back');vib();if(!LS.get('wkFlipped')){LS.set('wkFlipped',1);setTimeout(()=>$('#wfhint').style.visibility='hidden',600)}};
+(function(){const f=$('#wflip');let p0=null,last=0;
+ f.addEventListener('pointerdown',e=>{p0={x:e.clientX,y:e.clientY,t:Date.now()}});
+ f.addEventListener('pointerup',e=>{if(!p0)return;const q=p0;p0=null;if(e.target.closest('#wself'))return;if(Math.hypot(e.clientX-q.x,e.clientY-q.y)<12&&Date.now()-q.t<450){last=Date.now();flipWeek()}});
+ f.addEventListener('pointercancel',()=>{p0=null});
+ f.addEventListener('click',e=>{if(e.target.closest('#wself'))return;if(Date.now()-last>600)flipWeek()})})();
+function flipWeek(){const f=$('#wflip');f.classList.toggle('back');vib();if(!LS.get('wkFlipped')){LS.set('wkFlipped',1);setTimeout(()=>$('#wfhint').style.visibility='hidden',600)}};
 const WFS='"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif';
 function wBg(c,W,H){const t=THEMES[2];c.clearRect(0,0,W,H);let sd=7;const R=()=>(sd=(sd*16807)%2147483647)/2147483647;
  const g=c.createRadialGradient(W*.4,H*.3,60,W/2,H/2,W);g.addColorStop(0,'#fffcf4');g.addColorStop(1,'#f8efdc');c.fillStyle=g;rr(c,14,14,W-28,H-28,38,0);c.fill();
