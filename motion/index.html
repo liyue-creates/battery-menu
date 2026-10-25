@@ -1,0 +1,185 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>小动效库</title>
+<style>
+:root{--bg:#f6efe3;--card:#fffaf2;--ink:#4a3f35;--soft:#8a7b6c;--y:#f7c75e;--b:#a9d3ea;--pink:#f4b6b0;--g:#a8d5a2;--line:#4a3f35}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"PingFang SC","Hiragino Sans GB",sans-serif;padding:16px 14px 80px}
+h1{font-size:24px;margin:8px 4px 2px}.sub{color:var(--soft);font-size:13px;margin:0 4px 14px}
+h2{font-size:16px;margin:22px 4px 10px;color:var(--soft)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.card{background:var(--card);border:2px solid var(--line);border-radius:18px 14px 20px 13px;padding:12px;display:flex;flex-direction:column;gap:8px;box-shadow:2px 3px 0 rgba(74,63,53,.15)}
+.card.wide{grid-column:span 2}
+.stage{height:96px;display:flex;align-items:center;justify-content:center;position:relative}
+.name{font-weight:700;font-size:14px}.use{font-size:12px;color:var(--soft);line-height:1.4}
+.src{font-size:11px;color:#b09d88}.src a{color:inherit}
+button{font:inherit;color:inherit;cursor:pointer}
+.hit{min-width:44px;min-height:44px;border:0;background:none;padding:0;display:inline-flex;align-items:center;justify-content:center}
+/* 1 基础开关 */
+.sw{width:64px;height:36px;border:2px solid var(--line);border-radius:20px;background:#efe4d3;position:relative;transition:background .3s}
+.sw i{position:absolute;top:3px;left:3px;width:26px;height:26px;border-radius:50%;background:#fff;border:2px solid var(--line);transition:transform .35s cubic-bezier(.3,1.5,.6,1)}
+.on .sw{background:var(--y)}.on .sw i{transform:translateX(28px)}
+/* 2 果冻 */
+.jelly i{transition:transform .45s cubic-bezier(.3,1.6,.5,1)}
+.jelly.go i{animation:squish .45s}
+@keyframes squish{30%{width:36px}60%{width:22px}}
+.on .jelly i{transform:translateX(28px)}.on .jelly.go i{animation:squish2 .45s}
+@keyframes squish2{30%{width:36px;transform:translateX(18px)}60%{width:22px}}
+/* 3 表情 */
+.face i{display:flex;align-items:center;justify-content:center;font-size:14px}
+.face i:before{content:"·︿·"}.on .face i:before{content:"^‿^"}.on .face{background:var(--pink)}
+/* 4 日夜 */
+.dn{background:#bfe0f2}.dn i{background:#ffd56a}.on .dn{background:#4b4d6e}.on .dn i{background:#f3eee0;box-shadow:inset -6px -2px 0 #d8d0bd}
+.dn:after{content:"";position:absolute;right:10px;top:9px;width:4px;height:4px;border-radius:50%;background:#fff;opacity:0;transition:.3s .2s;box-shadow:-8px 10px 0 #fff,-4px -2px 0 #fff}
+.on .dn:after{opacity:1}
+/* 5 按压按钮 */
+.press{min-height:44px;min-width:44px;padding:12px 22px;border:2px solid var(--line);border-radius:14px;background:var(--y);box-shadow:0 4px 0 var(--line);transition:transform .08s,box-shadow .08s}
+.press:active{transform:translateY(4px);box-shadow:0 0 0 var(--line)}
+/* 6 点赞 */
+.like svg{width:40px;height:40px;transition:transform .3s cubic-bezier(.3,1.8,.5,1)}
+.like path{fill:none;stroke:var(--line);stroke-width:2;transition:fill .2s}
+.like.on path{fill:#f08a80}.like.on svg{animation:pop .45s}
+@keyframes pop{0%{transform:scale(1)}30%{transform:scale(.7)}60%{transform:scale(1.25)}100%{transform:scale(1)}}
+.burst{position:absolute;width:6px;height:6px;border-radius:50%;pointer-events:none;animation:fly .6s ease-out forwards}
+@keyframes fly{to{transform:translate(var(--x),var(--y2)) scale(.2);opacity:0}}
+/* 7 涟漪 */
+.ripple{position:relative;overflow:hidden;padding:12px 24px;border:2px solid var(--line);border-radius:22px;background:var(--b)}
+.ripple span{position:absolute;border-radius:50%;background:rgba(255,255,255,.7);transform:scale(0);animation:rip .6s ease-out;pointer-events:none}
+@keyframes rip{to{transform:scale(4);opacity:0}}
+/* 8 勾选画线 */
+.chk{width:34px;height:34px;border:2px solid var(--line);border-radius:9px 7px 10px 8px;background:#fff;transition:background .2s}
+.chk path{stroke:var(--line);stroke-width:3;fill:none;stroke-linecap:round;stroke-dasharray:30;stroke-dashoffset:30;transition:stroke-dashoffset .35s ease}
+.on .chk{background:var(--g)}.on .chk path{stroke-dashoffset:0}
+/* 9 待办划线 */
+.todo{display:flex;align-items:center;gap:8px;font-size:15px;min-height:44px;border:0;background:none}
+.todo b{font-weight:400;background:linear-gradient(var(--line),var(--line)) left 55%/0 2px no-repeat;transition:background-size .35s,color .3s}
+.todo.on b{background-size:100% 2px;color:var(--soft)}
+/* 10 圆形单选 */
+.radio{display:flex;gap:6px}.radio button{width:44px;height:44px;border:0;background:none;display:flex;align-items:center;justify-content:center}
+.radio i{width:24px;height:24px;border:2px solid var(--line);border-radius:50%;position:relative}
+.radio i:after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--y);transform:scale(0);transition:transform .3s cubic-bezier(.3,1.8,.5,1)}
+.radio .on i:after{transform:scale(1)}
+/* 11 弹跳点 */
+.dots{display:flex;gap:7px}.dots i{width:12px;height:12px;border-radius:50%;background:var(--y);border:2px solid var(--line);animation:bounce 1s infinite ease-in-out}
+.dots i:nth-child(2){animation-delay:.15s;background:var(--pink)}.dots i:nth-child(3){animation-delay:.3s;background:var(--b)}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-14px)}}
+/* 12 呼吸圈 */
+.breath{width:46px;height:46px;border-radius:50%;background:var(--g);border:2px solid var(--line);animation:breath 4s infinite ease-in-out}
+@keyframes breath{50%{transform:scale(1.35);background:var(--y)}}
+/* 13 电量填充 */
+.bat{width:120px;height:46px;border:2.5px solid var(--line);border-radius:10px;padding:4px;display:flex;gap:4px;position:relative}
+.bat:after{content:"";position:absolute;right:-9px;top:13px;width:6px;height:14px;border:2.5px solid var(--line);border-left:0;border-radius:0 4px 4px 0}
+.bat i{flex:1;border-radius:4px;background:var(--y);transform:scaleY(0);transform-origin:bottom}
+.bat.fill i{animation:cell .35s cubic-bezier(.3,1.6,.5,1) forwards}
+.bat.fill i:nth-child(2){animation-delay:.12s}.bat.fill i:nth-child(3){animation-delay:.24s}.bat.fill i:nth-child(4){animation-delay:.36s}.bat.fill i:nth-child(5){animation-delay:.48s}
+@keyframes cell{to{transform:scaleY(1)}}
+/* 14 进度条 */
+.prog{width:100%;height:16px;border:2px solid var(--line);border-radius:10px;overflow:hidden;background:#fff}
+.prog i{display:block;height:100%;width:0;background:repeating-linear-gradient(-45deg,var(--y) 0 8px,#f9d98a 8px 16px);transition:width .8s cubic-bezier(.3,1.2,.5,1);animation:stripe 1s linear infinite;background-size:22px 22px}
+@keyframes stripe{to{background-position:22px 0}}
+/* 15 滑块 */
+.rng{width:100%;-webkit-appearance:none;appearance:none;height:44px;background:transparent}
+.rng::-webkit-slider-runnable-track{height:10px;border:2px solid var(--line);border-radius:8px;background:linear-gradient(var(--y),var(--y)) 0/var(--p,50%) 100% no-repeat,#fff}
+.rng::-webkit-slider-thumb{-webkit-appearance:none;width:30px;height:30px;margin-top:-12px;border-radius:50%;background:#fff;border:2px solid var(--line);transition:transform .2s}
+.rng:active::-webkit-slider-thumb{transform:scale(1.25)}
+.rval{font-size:22px;transition:transform .15s}
+/* 16 数字跳动 */
+.num{font-size:34px;font-weight:700;display:inline-block}.num.bump{animation:pop .4s}
+/* 17 toast */
+.toast{position:fixed;left:50%;top:18px;transform:translate(-50%,-90px);background:var(--card);border:2px solid var(--line);border-radius:16px;padding:10px 18px;font-size:14px;z-index:20;transition:transform .45s cubic-bezier(.3,1.5,.5,1);box-shadow:2px 3px 0 rgba(74,63,53,.15)}
+.toast.show{transform:translate(-50%,0)}
+/* 18 抽屉 */
+.mask{position:fixed;inset:0;background:rgba(74,63,53,.25);opacity:0;pointer-events:none;transition:opacity .3s;z-index:10}
+.drawer{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:2px solid var(--line);border-radius:24px 24px 0 0;padding:14px 20px 34px;transform:translateY(105%);transition:transform .45s cubic-bezier(.25,1.2,.4,1);z-index:11}
+.drawer .bar{width:44px;height:5px;border-radius:3px;background:#d8c9b5;margin:0 auto 14px}
+.open .mask{opacity:1;pointer-events:auto}.open .drawer{transform:none}
+/* 19 撒花 */
+.conf{position:fixed;width:8px;height:12px;pointer-events:none;z-index:30;border-radius:2px}
+/* 20 摇头 */
+.shake{animation:shake .4s}@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.inp{width:100%;min-height:44px;border:2px solid var(--line);border-radius:12px;padding:0 12px;font:inherit;background:#fff}
+/* 21 标签弹入 */
+.tags{display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;height:96px;overflow:hidden}
+.tag{padding:6px 12px;border:2px solid var(--line);border-radius:14px;background:var(--b);font-size:13px;animation:tagin .4s cubic-bezier(.3,1.7,.5,1)}
+@keyframes tagin{from{transform:scale(0) rotate(-10deg)}}
+/* 22 翻卡 */
+.flip{width:110px;height:80px;perspective:500px;border:0;background:none;padding:0}
+.flip div{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .6s cubic-bezier(.3,1.3,.5,1)}
+.flip.on div{transform:rotateY(180deg)}
+.flip b{position:absolute;inset:0;backface-visibility:hidden;border:2px solid var(--line);border-radius:14px;display:flex;align-items:center;justify-content:center;background:var(--y);font-size:14px}
+.flip b+b{transform:rotateY(180deg);background:var(--pink)}
+/* 23 摇摆小人 */
+.stick{animation:wave 1.6s infinite ease-in-out;transform-origin:50% 90%}
+@keyframes wave{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
+/* 24 Tab 指示器 */
+.tabs{display:flex;position:relative;border:2px solid var(--line);border-radius:22px;padding:3px;width:100%;background:#fff}
+.tabs button{flex:1;min-height:44px;border:0;background:none;position:relative;z-index:1;font-size:14px}
+.tabs .ind{position:absolute;top:3px;bottom:3px;left:3px;width:calc((100% - 6px)/3);border-radius:18px;background:var(--y);transition:transform .4s cubic-bezier(.3,1.4,.5,1)}
+@media (prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style></head><body>
+<svg width="0" height="0" style="position:absolute"><filter id="wob"><feTurbulence baseFrequency=".03" numOctaves="2" seed="3"/><feDisplacementMap in="SourceGraphic" scale="2.5"/></filter></svg>
+<h1>小动效库 ✿</h1><p class="sub">点一点都能玩 · 24 个 · 都是纯 CSS/少量 JS</p>
+
+<h2>开关 Toggle</h2><div class="grid">
+<div class="card" id="m1"><div class="stage"><button class="hit tg" aria-label="开关"><span class="sw"><i></i></span></button></div><div class="name">1 基础开关</div><div class="use">圆点回弹滑过去，开/关设置</div><div class="src">参考 <a href="https://uiverse.io/switches">uiverse.io</a></div></div>
+<div class="card" id="m2"><div class="stage"><button class="hit tg jl" aria-label="果冻开关"><span class="sw jelly"><i></i></span></button></div><div class="name">2 果冻开关</div><div class="use">滑动时圆点被拉扁再弹回</div><div class="src">参考 <a href="https://codepen.io/search/pens?q=jelly+toggle">CodePen jelly toggle</a></div></div>
+<div class="card" id="m3"><div class="stage"><button class="hit tg" aria-label="表情开关"><span class="sw face"><i></i></span></button></div><div class="name">3 表情开关</div><div class="use">关是瘪嘴，开是笑脸</div><div class="src">参考 <a href="https://uiverse.io/switches">uiverse.io</a></div></div>
+<div class="card" id="m4"><div class="stage"><button class="hit tg" aria-label="日夜开关"><span class="sw dn"><i></i></span></button></div><div class="name">4 日夜开关</div><div class="use">太阳变月亮，冒出星星；早晚切换</div><div class="src">参考 <a href="https://codepen.io/search/pens?q=day+night+toggle">CodePen day/night</a></div></div>
+</div>
+
+<h2>按钮 Button</h2><div class="grid">
+<div class="card"><div class="stage"><button class="press">按我</button></div><div class="name">5 按下凹陷</div><div class="use">像实体按键往下压，主按钮</div><div class="src">参考 <a href="https://uiverse.io/buttons">uiverse.io buttons</a></div></div>
+<div class="card" id="m6"><div class="stage"><button class="hit like" aria-label="点赞"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/></svg></button></div><div class="name">6 爱心点赞</div><div class="use">缩一下再弹大，迸出小圆点</div><div class="src">参考 <a href="https://codepen.io/search/pens?q=twitter+heart">Twitter heart (CodePen)</a></div></div>
+<div class="card"><div class="stage"><button class="ripple" id="rp">轻点</button></div><div class="name">7 水波纹</div><div class="use">从手指位置漾开，次要按钮</div><div class="src">参考 <a href="https://m3.material.io/foundations/interaction/states">Material ripple</a></div></div>
+<div class="card" id="m24w"><div class="stage"><div class="tabs" id="tabs"><span class="ind"></span><button>早</button><button>晚</button><button>周</button></div></div><div class="name">8 滑动标签栏</div><div class="use">选中底色跟着滑过去</div><div class="src">参考 <a href="https://uiverse.io/radio-buttons">uiverse.io radio</a></div></div>
+</div>
+
+<h2>勾选 Check</h2><div class="grid">
+<div class="card"><div class="stage"><button class="hit tg" aria-label="勾选"><span class="chk"><svg viewBox="0 0 34 34" width="30" height="30"><path d="M8 17l6 6 12-13"/></svg></span></button></div><div class="name">9 手绘打勾</div><div class="use">勾一笔画出来，完成任务</div><div class="src">参考 <a href="https://animista.net">animista</a> / stroke-dashoffset</div></div>
+<div class="card"><div class="stage"><button class="todo tg"><span class="chk" style="width:26px;height:26px"><svg viewBox="0 0 34 34" width="22" height="22"><path d="M8 17l6 6 12-13"/></svg></span><b>喝杯水</b></button></div><div class="name">10 待办划线</div><div class="use">打勾同时文字被一笔划掉</div><div class="src">参考 <a href="https://codepen.io/search/pens?q=todo+strikethrough">CodePen todo</a></div></div>
+<div class="card"><div class="stage"><div class="radio" id="radio"><button aria-label="选1"><i></i></button><button class="on" aria-label="选2"><i></i></button><button aria-label="选3"><i></i></button></div></div><div class="name">11 单选弹点</div><div class="use">选中点从中心弹出</div><div class="src">参考 <a href="https://uiverse.io/radio-buttons">uiverse.io</a></div></div>
+<div class="card"><div class="stage"><div class="tags" id="tags"><span class="tag">散步</span></div></div><button class="press" id="addtag" style="padding:8px">+ 加标签</button><div class="name">12 标签弹入</div><div class="use">新标签转着蹦出来</div><div class="src">参考 <a href="https://animista.net/play/entrances">animista entrances</a></div></div>
+</div>
+
+<h2>加载 / 进度</h2><div class="grid">
+<div class="card"><div class="stage"><div class="dots"><i></i><i></i><i></i></div></div><div class="name">13 三色弹跳点</div><div class="use">等待中，比转圈更可爱</div><div class="src">参考 <a href="https://uiverse.io/loaders">uiverse.io loaders</a></div></div>
+<div class="card"><div class="stage"><div class="breath"></div></div><div class="name">14 呼吸圈</div><div class="use">慢慢放大缩小，陪你深呼吸</div><div class="src">参考 <a href="https://codepen.io/search/pens?q=breathing">CodePen breathing</a></div></div>
+<div class="card"><div class="stage"><button class="hit" id="batb" aria-label="充电"><div class="bat" id="bat"><i></i><i></i><i></i><i></i><i></i></div></button></div><div class="name">15 电量逐格充满</div><div class="use">点一下，一格一格弹上来</div><div class="src">自制，思路 <a href="https://animista.net">animista scale-in</a></div></div>
+<div class="card"><div class="stage" style="flex-direction:column;gap:10px"><div class="prog"><i id="pg"></i></div><button class="press" id="pgb" style="padding:6px 14px">+30%</button></div><div class="name">16 条纹进度条</div><div class="use">斜纹流动，回弹长到目标</div><div class="src">参考 <a href="https://codepen.io/search/pens?q=progress+bar+stripes">CodePen stripes</a></div></div>
+<div class="card wide"><div class="stage" style="flex-direction:column"><span class="rval" id="rv">🙂</span><input type="range" class="rng" id="rng" min="0" max="4" value="2" aria-label="心情"></div><div class="name">17 心情滑块</div><div class="use">拖动时轨道填色、滑块放大、表情跟着变</div><div class="src">参考 <a href="https://uiverse.io/inputs">uiverse.io</a></div></div>
+<div class="card"><div class="stage"><button class="hit" id="numb"><span class="num" id="num">3</span></button></div><div class="name">18 数字跳动</div><div class="use">数值变化时弹一下</div><div class="src">参考 <a href="https://animista.net/play/attention">animista attention</a></div></div>
+<div class="card"><div class="stage"><svg class="stick" width="60" height="80" viewBox="0 0 60 80" fill="none" stroke="#4a3f35" stroke-width="2.5" stroke-linecap="round" style="filter:url(#wob)"><circle cx="30" cy="16" r="10"/><path d="M30 26v28M30 34l-14-8M30 34l14-10M30 54l-10 18M30 54l10 18"/></svg></div><div class="name">19 摇摆小人</div><div class="use">简笔小人轻轻晃，空状态陪伴</div><div class="src">自制，SVG 抖动滤镜</div></div>
+</div>
+
+<h2>反馈 / 弹层</h2><div class="grid">
+<div class="card"><div class="stage"><button class="press" id="tb">弹 toast</button></div><div class="name">20 顶部 toast</div><div class="use">从上方回弹落下，2 秒收走</div><div class="src">参考 <a href="https://github.com/emilkowalski/sonner">sonner</a></div></div>
+<div class="card"><div class="stage"><button class="press" id="db">开抽屉</button></div><div class="name">21 底部抽屉</div><div class="use">详情从底部滑上来，点外面关</div><div class="src">参考 <a href="https://github.com/emilkowalski/vaul">vaul</a></div></div>
+<div class="card"><div class="stage"><button class="press" id="cb" style="background:var(--pink)">撒花 🎉</button></div><div class="name">22 撒花</div><div class="use">完成时彩纸飘落</div><div class="src">参考 <a href="https://github.com/catdad/canvas-confetti">canvas-confetti</a></div></div>
+<div class="card"><div class="stage"><button class="press" id="tcb" style="display:flex;align-items:center;gap:10px;background:var(--card,#fffaf0)"><span id="tck" style="position:relative;width:24px;height:24px;border:2.5px solid #4a3f35;border-radius:7px;display:inline-block;transition:background .2s"></span>做完一件事</button></div><div class="name">25 打勾小撒花</div><div class="use">打勾时只在勾的位置撒一小簇</div><div class="src">参考待办应用的完成反馈</div></div>
+<div class="card"><div class="stage"><button class="flip" id="fl"><div><b>点我翻面</b><b>今天也很棒</b></div></button></div><div class="name">23 翻卡片</div><div class="use">3D 翻面看背后的一句话</div><div class="src">参考 <a href="https://animista.net/play/basic/flip">animista flip</a></div></div>
+<div class="card wide"><div class="stage" style="flex-direction:column;gap:8px"><input class="inp" id="inp" placeholder="随便输入，留空点确定"><button class="press" id="ib" style="padding:8px 18px">确定</button></div><div class="name">24 轻轻摇头</div><div class="use">没填好时左右晃一下，不用红字</div><div class="src">参考 <a href="https://animista.net/play/attention/shake">animista shake</a></div></div>
+</div>
+
+<div class="toast" id="toast">已保存 ✓</div>
+<div id="dw"><div class="mask"></div><div class="drawer"><div class="bar"></div><b>10 月 25 日</b><p style="color:#8a7b6c">5 格电，用了 3 格 · 心情 🙂</p><button class="press" id="dc" style="width:100%">好的</button></div></div>
+
+<script>
+const $=s=>document.querySelector(s);
+document.querySelectorAll('.tg').forEach(b=>b.onclick=()=>{b.classList.toggle('on');const j=b.querySelector('.jelly');if(j){j.classList.remove('go');void j.offsetWidth;j.classList.add('go')}});
+const cols=['#f7c75e','#f4b6b0','#a9d3ea','#a8d5a2'];
+$('.like').onclick=e=>{const b=e.currentTarget;b.classList.toggle('on');if(!b.classList.contains('on'))return;const st=b.parentNode;for(let k=0;k<8;k++){const d=document.createElement('i');d.className='burst';const a=k/8*6.28;d.style.cssText=`background:${cols[k%4]};--x:${Math.cos(a)*34}px;--y2:${Math.sin(a)*34}px`;st.appendChild(d);setTimeout(()=>d.remove(),700)}};
+$('#rp').onclick=e=>{const b=e.currentTarget,r=b.getBoundingClientRect(),s=document.createElement('span'),z=Math.max(r.width,r.height);s.style.cssText=`width:${z}px;height:${z}px;left:${e.clientX-r.left-z/2}px;top:${e.clientY-r.top-z/2}px`;b.appendChild(s);setTimeout(()=>s.remove(),650)};
+document.querySelectorAll('#tabs button').forEach((b,i)=>b.onclick=()=>$('#tabs .ind').style.transform=`translateX(${i*100}%)`);
+document.querySelectorAll('#radio button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#radio button').forEach(x=>x.classList.remove('on'));b.classList.add('on')});
+const tw=['晒太阳','听歌','发呆','抱抱猫','吃水果'];let ti=0;$('#addtag').onclick=()=>{const t=document.createElement('span');t.className='tag';t.textContent=tw[ti++%5];t.style.background=cols[ti%4];const g=$('#tags');g.appendChild(t);if(g.children.length>5)g.firstChild.remove()};
+$('#batb').onclick=()=>{const b=$('#bat');b.classList.remove('fill');void b.offsetWidth;b.classList.add('fill')};
+let p=0;$('#pgb').onclick=()=>{p=p>=100?0:Math.min(100,p+30);$('#pg').style.width=p+'%'};
+const em=['😴','😕','🙂','😊','🤩'];$('#rng').oninput=e=>{const v=+e.target.value;e.target.style.setProperty('--p',v*25+'%');$('#rv').textContent=em[v]};$('#rng').oninput({target:$('#rng')});
+let n=3;$('#numb').onclick=()=>{const el=$('#num');el.textContent=n=n%5+1;el.classList.remove('bump');void el.offsetWidth;el.classList.add('bump')};
+let tt;$('#tb').onclick=()=>{$('#toast').classList.add('show');clearTimeout(tt);tt=setTimeout(()=>$('#toast').classList.remove('show'),2000)};
+const cl=()=>$('#dw').classList.remove('open');$('#db').onclick=()=>$('#dw').classList.add('open');$('#dw .mask').onclick=cl;$('#dc').onclick=cl;
+$('#cb').onclick=()=>{if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;for(let k=0;k<40;k++){const c=document.createElement('i');c.className='conf';c.style.background=cols[k%4];c.style.left=innerWidth/2+'px';c.style.top=innerHeight*.6+'px';document.body.appendChild(c);const dx=(Math.random()-.5)*360,up=-200-Math.random()*250,r=Math.random()*720;c.animate([{transform:'translate(0,0)'},{transform:`translate(${dx*.7}px,${up}px) rotate(${r/2}deg)`,offset:.4},{transform:`translate(${dx}px,${up+420}px) rotate(${r}deg)`,opacity:0}],{duration:1600+Math.random()*600,easing:'cubic-bezier(.2,.6,.4,1)'}).onfinish=()=>c.remove()}};
+$('#fl').onclick=e=>e.currentTarget.classList.toggle('on');
+$('#ib').onclick=()=>{const i=$('#inp');if(i.value.trim()){$('#tb').onclick();i.value='';return}i.classList.remove('shake');void i.offsetWidth;i.classList.add('shake')};
+
+(()=>{const b=document.getElementById('tcb'),k=document.getElementById('tck');let on=false;b.onclick=()=>{on=!on;k.style.background=on?'#f7d48a':'';k.innerHTML=on?'<svg viewBox="0 0 24 24" width="20" height="20" style="position:absolute;left:0;top:0"><path d="M5 12l4 4 9-10" fill="none" stroke="#4a3f35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>':'';if(!on||matchMedia('(prefers-reduced-motion: reduce)').matches)return;const cols=['#f4b860','#f19a9a','#f7d48a','#e98a6b','#f6c9a0','#a8d5a2'];for(let i=0;i<12;i++){const c=document.createElement('i');const a=i/12*Math.PI*2+(Math.random()-.5)*.5,d=30+Math.random()*20;c.style.cssText=`position:absolute;left:9px;top:9px;width:${i%2?6:7}px;height:${i%2?6:4}px;border-radius:${i%2?'50%':'1px'};background:${cols[i%6]};pointer-events:none`;k.appendChild(c);c.animate([{transform:'translate(0,0) scale(.5)',opacity:1},{transform:`translate(${Math.cos(a)*d}px,${Math.sin(a)*d}px) rotate(${(Math.random()-.5)*300}deg) scale(1)`,opacity:0}],{duration:600,easing:'cubic-bezier(.15,.8,.35,1)'}).onfinish=()=>c.remove()}}})();
+</script></body></html>
