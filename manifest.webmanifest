@@ -1,0 +1,1 @@
+{"name":"低能量电量条","short_name":"电量条","start_url":"./","scope":"./","display":"standalone","background_color":"#f6efe2","theme_color":"#f6efe2","icons":[{"src":"icons/icon-A-192.png","sizes":"192x192","type":"image/png"},{"src":"icons/icon-A-512.png","sizes":"512x512","type":"image/png","purpose":"any"}]}
