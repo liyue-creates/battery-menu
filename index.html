@@ -90,7 +90,13 @@ textarea.inp{resize:none;height:76px;line-height:1.5}
 .tip{font-size:14px;line-height:1.6;text-align:center;margin-top:10px}
 .preview img{width:100%;border-radius:8px}
 .toast{position:fixed;left:50%;bottom:112px;transform:translate(-50%,30px);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:14px;font-size:14px;opacity:0;transition:.35s;z-index:40;pointer-events:none}
-.toast.on{opacity:1;transform:translate(-50%,0)}
+.toast.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.toast .undo{font:inherit;background:none;border:0;color:var(--fill);font-weight:700;margin-left:10px;padding:6px 4px;cursor:pointer}
+.x{flex:none;width:32px;height:32px;margin:-6px -6px -6px 0;border:0;background:none;color:var(--soft);font-size:18px;line-height:1;cursor:pointer;display:grid;place-items:center}
+.edit .tag[data-i]{animation:wig .5s ease-in-out infinite alternate}.tag .tx2{display:none}.edit .tag[data-i] .tx2{display:inline;margin-left:4px;color:var(--soft)}
+@keyframes wig{from{transform:rotate(-1.2deg)}to{transform:rotate(1.2deg)}}
+.edit .item .ck{display:none}.item .x.mx{display:none}.edit .item .x.mx{display:grid}
+.lk{font:inherit;font-size:13px;background:none;border:0;color:var(--soft);text-decoration:underline dotted;cursor:pointer;padding:6px 2px}
 .bar{position:absolute;top:0;left:0;right:0;z-index:5;display:flex;justify-content:space-between;align-items:center;padding:calc(env(safe-area-inset-top) + 12px) 18px 0}
 .screen{padding-top:calc(env(safe-area-inset-top) + 62px)}
 .sw{display:flex;border:2px solid var(--ink);border-radius:14px;overflow:hidden;background:var(--card)}
@@ -166,9 +172,9 @@ body{-webkit-user-select:none;user-select:none}textarea,input{-webkit-user-selec
  <section class="screen" id="m2">
   <div id="warm2"></div>
   <div class="mini" id="mini"></div>
-  <h2>今天必须做的事 <span class="lite">可选 · 点一下加上</span></h2>
+  <h2>今天必须做的事 <span class="lite">可选 · 点一下加上</span> <button class="lk" data-edit="tags">整理</button></h2>
   <div class="tags" id="tags"></div>
-  <h2>多巴胺菜单 <button class="btn ghost" data-shuffle>换一换 ↻</button></h2>
+  <h2>多巴胺菜单 <span><button class="lk" data-edit="menuA">整理</button> <button class="btn ghost" data-shuffle>换一换 ↻</button></span></h2>
   <div class="menu" id="menuA"></div>
   <button class="btn ghost" data-addmine style="margin-top:4px;align-self:flex-start">＋ 加一件自己的小事</button>
   <p class="foot">晚上再来记一下今天 🌙</p>
@@ -185,11 +191,12 @@ body{-webkit-user-select:none;user-select:none}textarea,input{-webkit-user-selec
  </section>
  <!-- 晚上 1：做了哪些事 -->
  <section class="screen" id="n1">
+  <button class="link back" id="n1back">← 上一步</button>
   <h1 class="hello" style="text-align:left">晚上好呀，今天怎么样？</h1>
   <div class="seg2 hand" id="dayseg"><button data-d="0">记今天</button><button data-d="1">补记昨天</button></div>
   <h2>今天做了哪些事 <span class="lite">打勾就好</span></h2>
   <div id="didList"></div>
-  <p class="sub" style="margin:10px 0 6px">还做了别的？点一下加上</p>
+  <p class="sub" style="margin:10px 0 6px;display:flex;justify-content:space-between;align-items:center">还做了别的？点一下加上 <button class="lk" data-edit="tagsN">整理</button></p>
   <div class="tags" id="tagsN"></div>
   <div class="bottom"><button class="btn ghost" data-next style="flex:.6">跳过</button><button class="btn" data-next>下一步 →</button></div>
  </section>
@@ -239,7 +246,7 @@ body{-webkit-user-select:none;user-select:none}textarea,input{-webkit-user-selec
  <div class="row"><button class="btn ghost" data-close>算了</button><button class="btn" id="addOk">存成小标签</button></div>
 </div></div>
 <div class="mask" id="mMenu"><div class="sheet">
- <h3 style="display:flex;justify-content:space-between;align-items:center">充充电 · 多巴胺菜单 <button class="btn ghost" data-shuffle>换一换 ↻</button></h3>
+ <h3 style="display:flex;justify-content:space-between;align-items:center">充充电 · 多巴胺菜单 <span><button class="lk" data-edit="menuB">整理</button> <button class="btn ghost" data-shuffle>换一换 ↻</button></span></h3>
  <p class="sub" style="margin:-4px 0 10px">累了、心情低的时候，挑一件做做看</p>
  <div class="menu" id="menuB"></div>
  <button class="btn ghost" data-addmine style="margin-top:4px">＋ 加一件自己的小事</button>
@@ -251,7 +258,7 @@ body{-webkit-user-select:none;user-select:none}textarea,input{-webkit-user-selec
  <img id="saveImg" alt="今日电量卡片">
  <div class="row"><a class="btn ghost" id="dl" download="今日电量卡片.png" style="text-align:center;text-decoration:none">下载图片</a><button class="btn" data-close>好啦</button></div>
 </div></div>
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast"><span id="toastT"></span><button class="undo" id="undo" hidden>撤销</button></div>
 
 <script>
 const THEMES={1:['#f5eee2','#4a3f35','#8a7b6c','#aac8e6','#d4e4f3','#fffaf1'],2:['#f6efe1','#4a3f35','#8a7b6c','#f1dc93','#f7ebbd','#fffaf0'],3:['#f6eedf','#4a3f35','#8a7b6c','#f3c97e','#f8e0ad','#fffaf0'],4:['#f7eddb','#4a3e33','#8c7663','#f4ad6a','#f9d39b','#fffaf0'],5:['#f8ecd8','#4a3a2e','#8f7461','#f2925f','#fac58a','#fffbf2']};
@@ -336,7 +343,8 @@ const yOf=d=>d.actual!=null?d.actual:defaultY(d); // 估值
 const isEst=d=>d.actual==null;
 const sumText=(x,y)=>y==null?`今天 ${x} 格电`:`今天 ${x} 格电，用了 ${y} 格`;
 function theme(l){const t=THEMES[ik(l)],r=document.documentElement.style;['--bg','--ink','--soft','--fill','--fill2','--card'].forEach((v,i)=>r.setProperty(v,t[i]));document.querySelector('meta[name=theme-color]').content=t[0]}
-function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),1800)}
+let undoFn=null;function toast(t,u){const e=$('#toast');$('#toastT').textContent=t;undoFn=u||null;$('#undo').hidden=!u;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>{e.classList.remove('on');undoFn=null},u?4000:1800)}
+document.addEventListener('click',e=>{if(e.target.id==='undo'&&undoFn){const f=undoFn;undoFn=null;f();$('#toast').classList.remove('on');vib()}});
 function vib(){try{navigator.vibrate&&navigator.vibrate(12)}catch(e){}}
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 
@@ -373,11 +381,16 @@ function setStart(l){const old=D.start;D.start=l;save()}
 function renderMini(){$('#mini').innerHTML=`<div style="width:92px;height:34px;flex:none" class="hand">${batSVG(D.start,{h:100})}</div><div class="t"><b>${sumText(D.start,null)}</b> <span class="lite">点这里改</span><br>${MSG[D.start]}</div>`}
 $('#mini').onclick=()=>go('m1');
 function renderTags(box,mode){const on=new Set(D.must.map(m=>m.n));
- $(box).innerHTML=tags.map((t,i)=>`<button class="tag hand ${on.has(t.n)?'on':''}" data-i="${i}">${esc(t.n)} <span class="c">${bolts(t.c,12)}</span></button>`).join('')+`<button class="tag add hand" data-new>＋ ${D.must.length||mode==='n'?'新的':'加一件今天要做的事'}</button>`;
- $(box).querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{const t=tags[b.dataset.i],k=D.must.findIndex(m=>m.n===t.n);
+ $(box).innerHTML=tags.map((t,i)=>`<button class="tag hand ${on.has(t.n)?'on':''}" data-i="${i}">${esc(t.n)} <span class="c">${bolts(t.c,12)}</span><span class="tx2">×</span></button>`).join('')+`<button class="tag add hand" data-new>＋ ${D.must.length||mode==='n'?'新的':'加一件今天要做的事'}</button>`;
+ $(box).querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{if($(box).classList.contains('edit')){delTag(+b.dataset.i,box,mode);return}const t=tags[b.dataset.i],k=D.must.findIndex(m=>m.n===t.n);
   if(k>=0){D.must.splice(k,1);D.mustDone=D.mustDone.filter(n=>n!==t.n)}else{D.must.push({n:t.n,c:t.c});if(mode==='n')D.mustDone.push(t.n);vib()}
   save();renderTags(box,mode);if(mode==='n')renderDid()});
  $(box).querySelector('[data-new]').onclick=()=>openAdd('tag',mode)}
+function delTag(i,box,mode){const t=tags[i],bk=JSON.stringify(D);tags.splice(i,1);LS.set('tags',tags);
+ const k=D.must.findIndex(m=>m.n===t.n);if(k>=0&&mode!=='n'){D.must.splice(k,1);D.mustDone=D.mustDone.filter(n=>n!==t.n);save()}
+ rerender();toast('已删除 · '+t.n,()=>{tags.splice(i,0,t);LS.set('tags',tags);Object.assign(D,JSON.parse(bk));save();rerender()})}
+function rerender(){if(cur==='m2'){renderTags('#tags','m');renderMenu('#menuA')}if(cur==='n1'){renderDid();renderTags('#tagsN','n')}if($('#mMenu').classList.contains('on'))renderMenu('#menuB')}
+$$('[data-edit]').forEach(b=>b.onclick=()=>{const box=$('#'+b.dataset.edit),on=box.classList.toggle('edit');b.textContent=on?'好了':'整理';vib()});
 function pool(){return ITEMS.map((x,i)=>({id:'p'+i,t:x[0],tier:x[1],ic:x[2]})).concat(mine.map((x,i)=>({id:'m'+i,t:x.t,tier:x.tier,ic:x.ic})))}
 function pick(arr,n,seed){const a=arr.slice();let s=seed*9301+49297;for(let i=a.length-1;i>0;i--){s=(s*9301+49297)%233280;const j=Math.floor(s/233280*(i+1));[a[i],a[j]]=[a[j],a[i]]}
  const m=a.filter(x=>x.id[0]==='m'),p=a.filter(x=>x.id[0]!=='m');return m.concat(p).slice(0,n)}
@@ -387,9 +400,10 @@ function renderMenu(box){const L=D.start||3;let eff=L;if(st.tired)eff-=1;eff=Mat
  if(eff<=1)html+=`<div class="big-ok hand">今天允许什么都不做 🛏️<div style="font-size:14px;font-weight:500;margin-top:4px;color:var(--soft)">想动一动的话，这几件 2 分钟就好</div></div>`;
  counts.forEach((n,t)=>{if(!n)return;const list=pick(P.filter(x=>x.tier===t),n,seed+t*13);if(!list.length)return;
   if(eff>1)html+=`<div class="tier">${['☁️','🌿','☀️'][t]} ${TIERS[t]}</div>`;
-  html+=list.map(x=>`<div class="item ${D.done.includes(x.t)?'done':''}" data-t="${esc(x.t)}">${icon(x.ic)}<span class="tx">${esc(x.t)}</span><span class="ck"></span></div>`).join('')});
+  html+=list.map(x=>`<div class="item ${D.done.includes(x.t)?'done':''}" data-t="${esc(x.t)}">${icon(x.ic)}<span class="tx">${esc(x.t)}</span><span class="ck"></span>${x.id[0]==='m'?`<button class="x mx" data-mine="${x.id.slice(1)}" aria-label="删除">×</button>`:''}</div>`).join('')});
  const m=$(box);m.innerHTML=html;
- m.querySelectorAll('.item').forEach((el,i)=>{el.style.animation=`pop .5s ${i*0.04}s both cubic-bezier(.2,1.4,.4,1)`;el.onclick=e=>toggleDone(el,e)})}
+ m.querySelectorAll('.item').forEach((el,i)=>{el.style.animation=`pop .5s ${i*0.04}s both cubic-bezier(.2,1.4,.4,1)`;el.onclick=e=>{const xb=e.target.closest('[data-mine]');if(xb){e.stopPropagation();delMine(+xb.dataset.mine);return}if(m.classList.contains('edit'))return;toggleDone(el,e)}})}
+function delMine(i){const x=mine[i];mine.splice(i,1);LS.set('mine',mine);rerender();toast('已删除 · '+x.t,()=>{mine.splice(i,0,x);LS.set('mine',mine);rerender()})}
 function toggleDone(el,e){const t=el.dataset.t,k=D.done.indexOf(t);if(k>=0)D.done.splice(k,1);else{D.done.push(t);bubbles(el,e);vib()}el.classList.toggle('done');save()}
 $$('[data-shuffle]').forEach(b=>b.onclick=()=>{st.shuffle++;renderMenu('#menuA');renderMenu('#menuB')});
 $$('[data-addmine]').forEach(b=>b.onclick=()=>openAdd('mine'));
@@ -418,8 +432,9 @@ $$('#dayseg button').forEach(b=>b.onclick=()=>{const k=b.dataset.d==='1'?YEST:TO
 function renderDid(){const rows=[];
  D.must.forEach(m=>rows.push({t:m.n,k:'must',on:D.mustDone.includes(m.n),c:m.c}));
  D.done.forEach(t=>rows.push({t,k:'menu',on:true}));
- $('#didList').innerHTML=rows.length?rows.map(r=>`<div class="item ${r.on?'done2':''}" data-k="${r.k}" data-t="${esc(r.t)}">${r.k==='must'?`<span class="c" style="width:auto;min-width:26px">${bolts(r.c,12)}</span>`:icon('heart')}<span class="tx">${esc(r.t)}</span><span class="ck ${r.on?'on':''}"></span></div>`).join(''):`<p class="sub" style="text-align:center;padding:10px 0">今天还没记事情，下面点一下就能加上</p>`;
+ $('#didList').innerHTML=rows.length?rows.map(r=>`<div class="item ${r.on?'done2':''}" data-k="${r.k}" data-t="${esc(r.t)}">${r.k==='must'?`<span class="c" style="width:auto;min-width:26px">${bolts(r.c,12)}</span>`:icon('heart')}<span class="tx">${esc(r.t)}</span><span class="ck ${r.on?'on':''}"></span><button class="x" data-del aria-label="删除">×</button></div>`).join(''):`<p class="sub" style="text-align:center;padding:10px 0">今天还没记事情，下面点一下就能加上</p>`;
  $('#didList').querySelectorAll('.item').forEach(el=>el.onclick=e=>{const t=el.dataset.t;
+  if(e.target.closest('[data-del]')){const bk=JSON.stringify(D);if(el.dataset.k==='must'){D.must=D.must.filter(m=>m.n!==t);D.mustDone=D.mustDone.filter(n=>n!==t)}else D.done=D.done.filter(n=>n!==t);save();rerender();toast('已删除 · '+t,()=>{Object.assign(D,JSON.parse(bk));save();rerender()});return}
   if(el.dataset.k==='must'){const i=D.mustDone.indexOf(t);if(i>=0)D.mustDone.splice(i,1);else{D.mustDone.push(t);bubbles(el,e);vib()}}
   else{const i=D.done.indexOf(t);if(i>=0)D.done.splice(i,1);else{D.done.push(t);bubbles(el,e)}}
   el.classList.toggle('done2');el.querySelector('.ck').classList.toggle('on');save()})}
@@ -446,7 +461,7 @@ function drawCard(){const cv=$('#card'),c=cv.getContext('2d'),W=660,H=880,t=THEM
  c.clearRect(0,0,W,H);c.fillStyle=t[5];c.fillRect(0,0,W,H);
  for(let i=0;i<900;i++){c.fillStyle=`rgba(120,90,60,${Math.random()*.07})`;c.fillRect(Math.random()*W,Math.random()*H,2,2)}
  c.lineWidth=5;c.strokeStyle=ink;c.lineJoin='round';rr(c,22,22,W-44,H-44,36,5);c.stroke();
- const [yy,mm,dd]=DK.split('-');c.fillStyle=t[2];c.font='26px '+fs;c.fillText(`${+mm}月${+dd}日 · 今日电量`,64,96);
+ const [yy,mm,dd]=DK.split('-');c.fillStyle=t[2];c.font='26px '+fs;c.fillText(`${+mm}月${+dd}日 · ${DK===YEST?'昨天的电量':'今日电量'}`,64,96);
  const X=D.start,y=D.night||D.actual!=null?yOf(D):null,S=1.22,ox=64,oy=140,cw=UG.c*S,hh=UG.h*S;
  rr(c,ox,oy,UG.body*S,hh,18,3);c.fillStyle='#fff';c.fill();c.stroke();rr(c,ox+UG.body*S+1,oy+hh*.3,UG.knob*S,hh*.4,5,1);c.fillStyle='#fff';c.fill();c.stroke();
  cellsOf(X,y==null?0:y).forEach(k=>{const x=ox+(k.x+3)*S,yy2=oy+9*S,w=cw-6*S,h=hh-18*S;
@@ -492,7 +507,9 @@ function openDay(k){const d=days[k],X=d.start,Y=yOf(d),WD='日一二三四五六
  <p class="dsum">${esc(sumText(X,Y))}${isEst(d)&&!d.night?' <span class="est">（估的）</span>':''}</p>${Y>X?'<p class="dtired">今天辛苦啦，好好抱抱自己</p>':''}
  ${did.length?`<h4>做了</h4><div class="chips">${did.map(t=>`<span>${esc(t)}</span>`).join('')}</div>`:''}
  ${d.done.length?`<h4>充了电</h4><div class="chips">${d.done.map(t=>`<span>${esc(t)}</span>`).join('')}</div>`:''}
- ${d.note?`<div class="dnote">“${esc(d.note)}”</div>`:''}`;
+ ${d.note?`<div class="dnote">“${esc(d.note)}”</div>`:''}
+ ${k===TODAY||k===YEST?`<div class="row"><button class="btn ghost" data-close>好啦</button><button class="btn" id="dEdit">改一改</button></div>`:`<div class="row"><button class="btn" data-close>好啦</button></div>`}`;
+ const de=$('#dEdit');if(de)de.onclick=()=>{$('#mDay').classList.remove('on');DK=k;D=getDay(k);D.night=false;save();if(D.start)theme(D.start);go('n1')};
  $('#mDay').classList.add('on')}
 $('#wkPrev').onclick=()=>{wkOff--;renderWeek();vib()};$('#wkNext').onclick=()=>{if(wkOff<0){wkOff++;renderWeek();vib()}};
 $('#uback').onclick=()=>enterNight2();$('#cReview').onclick=openReview;
@@ -516,9 +533,10 @@ function go(id){const idx=ALL.indexOf(id),ci=ALL.indexOf(cur);ALL.forEach((s,k)=
  if(id==='n1'){renderDayseg();$('#n1 h2').firstChild.textContent=DK===YEST?'昨天做了哪些事 ':'今天做了哪些事 ';renderDid();renderTags('#tagsN','n')}
  if(id==='n2')initUsed();
  if(id==='n3')initN3();
- if(id==='c1')drawCard();
+ if(id==='c1'){$('#c1 h1').textContent=DK===YEST?'昨天的电量卡片':'今日电量卡片';drawCard()}
  refreshReviewBtn()}
 $('#m1next').onclick=()=>{setStart(st.level);go('m2')};
+$('#n1back').onclick=()=>{st.level=D.start||3;go('n0')};
 $('#n0next').onclick=()=>{setStart(st.level);go('n1')};
 $$('#n1 [data-next]').forEach(b=>b.onclick=()=>go('n2'));
 $('#n2next').onclick=()=>go('n3');
