@@ -93,7 +93,7 @@ textarea.inp{resize:none;height:76px;line-height:1.5}
 .toast.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
 .toast .undo{font:inherit;background:none;border:0;color:var(--fill);font-weight:700;margin-left:10px;padding:6px 4px;cursor:pointer}
 .x{flex:none;width:32px;height:32px;margin:-6px -6px -6px 0;border:0;background:none;color:var(--soft);font-size:18px;line-height:1;cursor:pointer;display:grid;place-items:center}
-.edit .tag[data-i]{animation:wig .5s ease-in-out infinite alternate}.tag .tx2{display:none}.edit .tag[data-i] .tx2{display:inline;margin-left:4px;color:var(--soft)}
+.edit .tag[data-i]{animation:wig .5s ease-in-out infinite alternate}.tag .tx2{display:none}.edit .tag[data-i] .tx2{display:inline-grid;place-items:center;width:34px;height:34px;margin:-8px -10px -8px 0;font-size:18px;color:var(--soft);border-radius:50%}.edit .tag[data-i] .tx2:active{background:rgba(0,0,0,.06)}.tag.nope{animation:nope .35s ease!important}@keyframes nope{25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
 @keyframes wig{from{transform:rotate(-1.2deg)}to{transform:rotate(1.2deg)}}
 .edit .item .ck{display:none}.item .x.mx{display:none}.edit .item .x.mx{display:grid}
 .lk{font:inherit;font-size:13px;background:none;border:0;color:var(--soft);text-decoration:underline dotted;cursor:pointer;padding:6px 2px}
@@ -143,6 +143,7 @@ body{-webkit-user-select:none;user-select:none}textarea,input{-webkit-user-selec
 #dayBody h4{margin:14px 0 6px;font-size:13px;color:var(--soft)}.chips{display:flex;flex-wrap:wrap;gap:6px}.chips span{border:1.8px solid var(--ink);border-radius:12px 9px 13px 10px;padding:4px 10px;font-size:13px;background:var(--card)}
 .dnote{margin-top:14px;background:var(--fill2);border:2px solid var(--ink);border-radius:14px 18px 12px 16px;padding:10px 14px;font-size:15px}
 .warm{background:var(--fill2);box-shadow:3px 4px 0 var(--ink);text-align:left;display:flex;gap:12px;align-items:flex-start}.warm .wi{font-size:26px;line-height:1}.warm b{margin-bottom:2px}
+.estb{border:1.5px dashed var(--soft);background:rgba(255,255,255,.55);color:var(--ink,#5a4a3a);border-radius:999px;padding:8px 14px;font:inherit;font-size:14px;cursor:pointer;transition:transform .12s}.estb:active{transform:scale(.95)}
 </style>
 </head>
 <body>
@@ -381,8 +382,8 @@ function setStart(l){const old=D.start;D.start=l;save()}
 function renderMini(){$('#mini').innerHTML=`<div style="width:92px;height:34px;flex:none" class="hand">${batSVG(D.start,{h:100})}</div><div class="t"><b>${sumText(D.start,null)}</b> <span class="lite">点这里改</span><br>${MSG[D.start]}</div>`}
 $('#mini').onclick=()=>go('m1');
 function renderTags(box,mode){const on=new Set(D.must.map(m=>m.n));
- $(box).innerHTML=tags.map((t,i)=>`<button class="tag hand ${on.has(t.n)?'on':''}" data-i="${i}">${esc(t.n)} <span class="c">${bolts(t.c,12)}</span><span class="tx2">×</span></button>`).join('')+`<button class="tag add hand" data-new>＋ ${D.must.length||mode==='n'?'新的':'加一件今天要做的事'}</button>`;
- $(box).querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{if($(box).classList.contains('edit')){delTag(+b.dataset.i,box,mode);return}const t=tags[b.dataset.i],k=D.must.findIndex(m=>m.n===t.n);
+ $(box).innerHTML=tags.map((t,i)=>`<button class="tag hand ${on.has(t.n)?'on':''}" data-i="${i}">${esc(t.n)} <span class="c">${bolts(t.c,12)}</span><span class="tx2" role="button" aria-label="删除">×</span></button>`).join('')+`<button class="tag add hand" data-new>＋ ${D.must.length||mode==='n'?'新的':'加一件今天要做的事'}</button>`;
+ $(box).querySelectorAll('[data-i]').forEach(b=>b.onclick=e=>{if($(box).classList.contains('edit')){if(e.target.closest('.tx2'))delTag(+b.dataset.i,box,mode);else{b.classList.remove('nope');void b.offsetWidth;b.classList.add('nope');setTimeout(()=>b.classList.remove('nope'),400)}return}const t=tags[b.dataset.i],k=D.must.findIndex(m=>m.n===t.n);
   if(k>=0){D.must.splice(k,1);D.mustDone=D.mustDone.filter(n=>n!==t.n)}else{D.must.push({n:t.n,c:t.c});if(mode==='n')D.mustDone.push(t.n);vib()}
   save();renderTags(box,mode);if(mode==='n')renderDid()});
  $(box).querySelector('[data-new]').onclick=()=>openAdd('tag',mode)}
@@ -442,7 +443,10 @@ let Y=0;
 function renderUsed(y){Y=Math.max(0,Math.min(10,y));const X=D.start;
  $('#ubat').innerHTML=usedSVG(X,Y);$('#utext').textContent=sumText(X,Y);
  $('#utired').textContent=Y>X?'今天辛苦啦，好好抱抱自己':'';
- $('#uhint').textContent=Y>=5&&Y<10?'满了还能继续往右拖 →':(Y===0&&D.mustDone.length?'按打勾的事，大概 '+defaultY(D)+' 格':'');}
+ const N=Math.min(10,defaultY(D)),h=$('#uhint');
+ if(N>0&&Y!==N&&!fillT){h.innerHTML=`<button class="estb" id="estb">按打勾的事，大概 ${N} 格 · 点一下填上</button>`;$('#estb').onclick=()=>fillTo(N)}
+ else if(!fillT)h.textContent=Y>=5&&Y<10?'满了还能继续往右拖 →':'';}
+let fillT=null;function fillTo(n){clearInterval(fillT);let y=Y;const d=n>y?1:-1;fillT=setInterval(()=>{y+=d;vib();renderUsed(y);if(y===n){clearInterval(fillT);fillT=null;D.actual=n;D.manual=true;save();renderUsed(n)}},140)}
 (function(){const w=$('#ubat');let drag=false;const px=e=>{const r=w.getBoundingClientRect();return (e.clientX-r.left)/r.width*UV.w+UV.l};
  const upd=e=>{const y=yFromX(px(e));if(y!==Y){vib();D.actual=y;D.manual=true;save();renderUsed(y)}};
  w.addEventListener('pointerdown',e=>{const b=e.target.closest('[data-bolt]');if(b){const y=5+(+b.dataset.bolt);vib();D.actual=y;D.manual=true;save();renderUsed(y);return}drag=true;w.setPointerCapture(e.pointerId);upd(e)});w.addEventListener('pointermove',e=>{if(drag)upd(e)});
