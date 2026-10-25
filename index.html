@@ -26,7 +26,7 @@ body{font-family:"PingFang SC","Hiragino Sans GB","Noto Sans CJK SC","Microsoft 
  background-image:radial-gradient(var(--paper-dot) 1px,transparent 1.2px),radial-gradient(var(--paper-dot) 1px,transparent 1.2px);background-size:18px 18px,23px 23px;background-position:0 0,9px 11px;
  transition:background-color .8s ease,color .8s ease}
 .hand{filter:url(#wobble)}
-.app{position:relative;height:100%;max-width:480px;margin:0 auto;overflow:hidden}
+.app{position:relative;height:100%;max-width:480px;margin:0 auto;overflow:hidden;overflow:clip}
 .screen{position:absolute;inset:0;padding:calc(env(safe-area-inset-top) + 22px) 22px calc(env(safe-area-inset-bottom) + 22px);display:flex;flex-direction:column;overflow:hidden;overscroll-behavior:none;
  opacity:0;transform:translateX(40px);pointer-events:none;transition:opacity .5s ease,transform .6s cubic-bezier(.2,.9,.25,1.1)}
 .screen.on{opacity:1;transform:none;pointer-events:auto}
@@ -458,8 +458,8 @@ function pick(arr,n,seed){const a=arr.slice();let s=seed*9301+49297;for(let i=a.
 function renderMenu(box){const L=D.start||3;let eff=L;if(st.tired)eff-=1;eff=Math.max(1,eff);
  const P=pool(),seed=st.shuffle+L*7+new Date().getDate();let html='';
  const counts=eff<=1?[3,0,0]:eff===2?[3,2,0]:eff===3?[2,3,1]:eff===4?[2,2,2]:[1,2,3];
- if(eff<=1)html+=`<div class="big-ok hand">今天允许什么都不做 🛏️<div style="font-size:14px;font-weight:500;margin-top:4px;color:var(--soft)">想动一动的话，这几件 2 分钟就好</div></div>`;
- counts.forEach((n,t)=>{if(!n)return;const list=pick(P.filter(x=>x.tier===t),n,seed+t*13);if(!list.length)return;
+ if(eff<=1)html+=`<div class="big-ok hand">今天允许什么都不做 🛏️<div style="font-size:14px;font-weight:500;margin-top:4px;color:var(--soft)">想做点什么的话，这几件躺着就行</div></div>`;
+ counts.forEach((n,t)=>{if(!n)return;const TP=P.filter(x=>x.tier===t),dn=TP.filter(x=>D.done.includes(x.t)),list=dn.concat(pick(TP.filter(x=>!D.done.includes(x.t)),Math.max(0,n-dn.length),seed+t*13));if(!list.length)return;
   if(eff>1)html+=`<div class="tier">${TEMO[t]} ${TIERS[t]}</div>`;
   html+=list.map(x=>`<div class="item ${D.done.includes(x.t)?'done':''}" data-t="${esc(x.t)}">${icon(x.ic)}<span class="tx">${esc(x.t)}</span><span class="ck"></span></div>`).join('')});
  if(!html.includes('class="item'))html+=`<p class="sub" style="margin:10px 0">${P.length?'这一档还空着，':'菜单还空空的，'}<button class="lk" data-mymenu-in>去「我的菜单」放几件喜欢的小事吧</button></p>`;
@@ -480,7 +480,9 @@ $('#mineAdd').onclick=()=>openAdd('mine');
 $('#mineRestore').onclick=()=>{const miss=ITEMS.filter(x=>!menu.some(m=>m.t===x[0]));if(!miss.length){toast('默认的小事都在菜单里啦');return}$('#mineAsk').hidden=false};
 $('#mineNo').onclick=()=>{$('#mineAsk').hidden=true};
 $('#mineYes').onclick=()=>{const bk=menu.slice();ITEMS.forEach(x=>{if(!menu.some(m=>m.t===x[0]))menu.push({t:x[0],tier:x[1],ic:x[2]})});$('#mineAsk').hidden=true;const n=menu.length-bk.length;saveMenu();toast('加回了 '+n+' 件默认小事',()=>{menu=bk;saveMenu()})};
-function toggleDone(el,e){const t=el.dataset.t,k=D.done.indexOf(t);if(k>=0)D.done.splice(k,1);else{D.done.push(t);bubbles(el,e);vib()}el.classList.toggle('done');save()}
+function toggleDone(el,e){const t=el.dataset.t,k=D.done.indexOf(t),on=k<0;if(!on)D.done.splice(k,1);else{D.done.push(t);bubbles(el,e);vib()}save();syncDone();
+ if(on&&D.done.length===1)toast(DK===YEST?'记到昨天啦':'充上电啦，今天的卡片里会有它')}
+function syncDone(){$$('#menuA .item,#menuB .item').forEach(x=>x.classList.toggle('done',D.done.includes(x.dataset.t)));if(cur==='n1')renderDid();if(cur==='c1')drawCard()}
 $$('[data-shuffle]').forEach(b=>b.onclick=()=>{st.shuffle++;renderMenu('#menuA');renderMenu('#menuB')});
 $$('[data-addmine]').forEach(b=>b.onclick=()=>openAdd('mine'));
 $('#charge').onclick=()=>{renderMenu('#menuB');$('#mMenu').classList.add('on')};
@@ -498,7 +500,7 @@ function openAdd(mode,from,ed){addMode=mode;addFrom=from||'m';addEdit=ed==null?-
 $('#addOk').onclick=()=>{const n=$('#addName').value.trim();if(!n){$('#addName').focus();return}
  if(addMode==='tag'){if(!tags.some(t=>t.n===n)){tags.push({n,c:addCost});LS.set('tags',tags)}if(!D.must.some(m=>m.n===n))D.must.push({n,c:addCost});if(addFrom==='n'&&!D.mustDone.includes(n))D.mustDone.push(n);save();
   if(addFrom==='n'){renderTags('#tagsN','n');renderDid()}else renderTags('#tags','m');toast('存好啦，下次点一下就行')}
- else if(addEdit>=0){const o=menu[addEdit],bk={...o};o.t=n;o.tier=addTier;saveMenu();toast('改好啦',()=>{Object.assign(o,bk);saveMenu()})}
+ else if(addEdit>=0){const o=menu[addEdit],bk={...o},rn=(a,b)=>{[TODAY,YEST].forEach(k=>{const d=days[k];if(d&&d.done){const i=d.done.indexOf(a);if(i>=0&&!d.done.includes(b))d.done[i]=b}});save()};o.t=n;o.tier=addTier;if(bk.t!==n)rn(bk.t,n);saveMenu();syncDone();toast('改好啦',()=>{if(bk.t!==n)rn(n,bk.t);Object.assign(o,bk);saveMenu();syncDone()})}
  else{if(menu.some(m=>m.t===n)){toast('菜单里已经有这件啦')}else{menu.push({t:n,tier:addTier,ic:ICONS[menu.length%ICONS.length]});saveMenu();toast('放进菜单啦')}}
  $('#mAdd').classList.remove('on')};
 
@@ -616,12 +618,13 @@ $$('.sheet').forEach(sh=>{let y0=null,dy=0;sh.addEventListener('touchstart',e=>{
 $$('.sheet>.grab').forEach(g=>{const sh=g.parentNode;let y0=null,dy=0;g.addEventListener('pointerdown',e=>{if(e.pointerType==='touch')return;y0=e.clientY;dy=0;sh.style.transition='none';g.setPointerCapture(e.pointerId)});g.addEventListener('pointermove',e=>{if(y0==null)return;dy=Math.max(0,e.clientY-y0);sh.style.transform=`translateY(${dy}px)`});g.addEventListener('pointerup',()=>{if(y0==null)return;sh.style.transition='';sh.style.transform='';if(dy>80||dy<4)sh.closest('.mask').classList.remove('on');y0=null})});
 document.head.insertAdjacentHTML('beforeend','<style>@keyframes grow{from{transform:scaleY(0)}to{transform:none}}body{-webkit-user-select:none;user-select:none}textarea,input{-webkit-user-select:text;user-select:text}@keyframes fadein{from{opacity:0}to{opacity:1}}</style>');
 $('#openReview').onclick=openReview;
+const dayChk=()=>{if(keyOff(0)!==TODAY&&!document.querySelector('.mask.on'))location.reload()};document.addEventListener('visibilitychange',()=>{if(!document.hidden)dayChk()});addEventListener('focus',dayChk);
 function refreshReviewBtn(){$('#openReview').hidden=recKeys().length<2}
 
 /* ---------- 导航 ---------- */
 const ALL=['m1','m2','n0','n1','n2','n3','c1','u1'];let cur=null,mode='am';
 function setMode(m){mode=m;$$('#sw button').forEach(b=>b.classList.toggle('on',b.dataset.m===m))}
-function go(id){const idx=ALL.indexOf(id),ci=ALL.indexOf(cur);ALL.forEach((s,k)=>{const e=$('#'+s);e.classList.toggle('on',s===id);e.classList.toggle('left',k<idx)});cur=id;$('#'+id).scrollTop=0;
+function go(id){if((id==='m1'||id==='m2')&&DK!==TODAY){DK=TODAY;D=getDay(DK);st.level=D.start||3}const idx=ALL.indexOf(id),ci=ALL.indexOf(cur);ALL.forEach((s,k)=>{const e=$('#'+s);e.classList.toggle('on',s===id);e.classList.toggle('left',k<idx)});cur=id;$('#'+id).scrollTop=0;const ap=$('.app');if(ap)ap.scrollLeft=0;
  if(id!=='u1')setMode(id[0]==='m'?'am':'pm');if(D.start)theme(D.start);
  if(id==='m1')initBat('#bat','#msg');
  if(id==='m2'){renderMini();renderTags('#tags','m');renderMenu('#menuA')}
@@ -664,7 +667,7 @@ const FB={'轻轻记录周':['记下来就很棒，下周再多记一两天吧',
  '充电小能手周':['这周也有好好照顾自己哦～','「{t}」给你充了好多电，下周也安排上吧','会给自己充电的你，真可爱～'],
  '满格活力周':['超棒的！把喜欢的事继续留在日程里','状态亮晶晶，下周也按这个节奏来吧'],
  '元气满满周':['电还有剩，节奏真好！留一格给喜欢的事吧','元气在线～每天睡饱一点，继续保持'],
- '努力小电池周':['这周很努力啦，下周给自己留一个什么都不做的晚上吧','去充充电，挑一件喜欢的小事做做吧','试试每天先做一件 2 分钟的小事'],
+ '努力小电池周':['这周很努力啦，下周给自己留一个什么都不做的晚上吧','去充充电，挑一件喜欢的小事做做吧','试试每天先做一件躺着就行的小事'],
  '慢慢充电周':['慢慢来就好，去充充电，找件开心的小事吧','给自己一点慢慢来的时间，泡杯热饮吧','今晚早点休息，明天轻轻出发']};
 function wkFb(tt,w,ks){const a=FB[tt]||FB['慢慢充电周'];let h=0;for(const ch of (ks[0]||''))h=(h*31+ch.charCodeAt(0))%997;
  const cnt={};w.rk.forEach(k=>(days[k].done||[]).forEach(x=>cnt[x]=(cnt[x]||0)+1));const t=Object.keys(cnt).sort((x,y)=>cnt[y]-cnt[x])[0];
