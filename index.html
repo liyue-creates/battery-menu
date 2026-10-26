@@ -212,7 +212,7 @@ body{-webkit-user-select:none;user-select:none}textarea,input{-webkit-user-selec
  <section class="screen" id="m2">
   <div class="mid">
   <div id="warm2"></div>
-  <div class="mini" id="mini"></div>
+  <div class="mini" id="mini"></div><div id="est" style="text-align:center;margin:8px 0 0;font-size:14px;color:var(--soft);line-height:1.65"></div>
   <h2>今天必须做的事 <span class="lite">可选 · 点一下加上</span> <button class="lk" data-edit="tags">整理</button></h2>
   <div class="tags" id="tags"></div>
   <h2>多巴胺菜单 <span><button class="lk" data-mymenu>我的菜单</button> <button class="btn ghost" data-shuffle>换一换 ↻</button></span></h2>
@@ -355,7 +355,7 @@ function batSVG(fill,opts={}){const W=300,H=opts.h||110,cell=(W-28)/5,ink='var(-
 s+=`<rect x="0" y="0" width="${W}" height="${H}" rx="18" fill="var(--card)" stroke="${ink}" stroke-width="4"/>`;
 s+=`<rect x="${W+2}" y="${H*.32}" width="18" height="${H*.36}" rx="6" fill="var(--card)" stroke="${ink}" stroke-width="4"/>`;
 const fw=Math.max(0,Math.min(5,fill))*cell;
-s+=`<g filter="url(#crayon)"><rect x="14" y="14" width="${fw}" height="${H-28}" rx="9" fill="var(--fill)" style="transition:${opts.anim?'width .45s cubic-bezier(.3,1.6,.5,1)':'none'}"/></g>`;
+s+=`<g filter="url(#crayon)"><rect class="bfill" x="14" y="14" width="${5*cell}" height="${H-28}" rx="9" fill="var(--fill)" style="transform-box:fill-box;transform-origin:left center;will-change:transform;transform:scaleX(${(fw/(5*cell)).toFixed(4)});transition:${opts.anim?'transform .45s cubic-bezier(.3,1.6,.5,1)':'none'}"/></g>`;
 for(let i=1;i<5;i++)s+=`<path d="M${14+i*cell} ${16} q3 ${(H-32)/2} 0 ${H-32}" stroke="${ink}" stroke-width="2.5" fill="none" opacity=".55"/>`;
 return s+'</svg>'}
 function odSVG(od,opts={}){const W=300,H=opts.h||56,cell=(W-28)/5;let s=`<svg viewBox="-6 -6 ${W+40} ${H+12}" preserveAspectRatio="xMidYMid meet">`;
@@ -367,8 +367,8 @@ function bolts(c,sz){sz=sz||12;let h='';const P='M6 0L1 9h4l-1 7 6-10H6l1-6z';fo
 function makeDrag(wrap,get,set,onEnd){let drag=false;const rect=()=>wrap.getBoundingClientRect();
 function val(e){const r=rect();const x=(e.clientX-r.left)/(r.width*300/340);return Math.max(0,Math.min(5,x*5*(300/272)-(14/272)*5))}
 wrap.addEventListener('pointerdown',e=>{drag=true;wrap.setPointerCapture(e.pointerId);set(val(e),false)});
-wrap.addEventListener('pointermove',e=>{if(drag)set(val(e),false)});
-const up=e=>{if(!drag)return;drag=false;set(val(e),true);onEnd&&onEnd()};
+let raf=0,lv=0;wrap.addEventListener('pointermove',e=>{if(!drag)return;lv=val(e);if(!raf)raf=requestAnimationFrame(()=>{raf=0;if(drag)set(lv,false)})});
+const up=e=>{if(!drag)return;drag=false;if(raf){cancelAnimationFrame(raf);raf=0}set(val(e),true);onEnd&&onEnd()};
 wrap.addEventListener('pointerup',up);wrap.addEventListener('pointercancel',up)}
 
 function rr(c,x,y,w,h,r,j){c.beginPath();const J=()=>(Math.random()-.5)*j;c.moveTo(x+r+J(),y+J());c.lineTo(x+w-r+J(),y+J());c.quadraticCurveTo(x+w,y,x+w+J(),y+r);c.lineTo(x+w+J(),y+h-r);c.quadraticCurveTo(x+w,y+h,x+w-r,y+h+J());c.lineTo(x+r,y+h+J());c.quadraticCurveTo(x,y+h,x+J(),y+h-r);c.lineTo(x+J(),y+r);c.quadraticCurveTo(x,y,x+r,y);c.closePath()}
@@ -434,22 +434,28 @@ function yFromX(px){const e=UG.body+UG.knob;if(px>e+6){return Math.min(10,5+Math
 /* ---------- 早上：选电量 ---------- */
 let lastSnap=null;
 function renderBat(el,msgEl,fill,snap){const l=Math.max(1,Math.min(5,Math.ceil(fill-0.0001)));
- $(el).innerHTML=batSVG(snap?l:fill,{anim:snap});
+ const bf=$(el).querySelector('.bfill');if(bf){const v=Math.max(0,Math.min(5,snap?l:fill))/5;bf.style.transition=snap?'transform .45s cubic-bezier(.3,1.6,.5,1)':'none';bf.style.transform=`scaleX(${v.toFixed(4)})`}else $(el).innerHTML=batSVG(snap?l:fill,{anim:snap});
  if(l!==lastSnap){vib();lastSnap=l;const m=$(msgEl);m.style.opacity=0;setTimeout(()=>{m.textContent=MSG[l];m.style.opacity=1},160)}
- st.level=l;theme(l)}
+ if(st.level!==l||snap)theme(l);st.level=l}
 makeDrag($('#batwrap'),()=>st.level,(v,snap)=>renderBat('#bat','#msg',v,snap));
 makeDrag($('#batwrapN'),()=>st.level,(v,snap)=>renderBat('#batN','#msgN',v,snap));
 function initBat(el,msgEl){st.level=D.start||st.level||3;lastSnap=st.level;$(msgEl).textContent=MSG[st.level];renderBat(el,msgEl,st.level,true)}
 function setStart(l){const old=D.start;D.start=l;save()}
 
 /* ---------- 早上：菜单 ---------- */
-function renderMini(){$('#mini').innerHTML=`<div style="width:92px;height:34px;flex:none" class="hand">${batSVG(D.start,{h:100})}</div><div class="t"><b>${sumText(D.start,null)}</b> <span class="lite">点这里改</span><br>${MSG[D.start]}</div>`}
+function renderEst(){const n=mustSum(D),X=D.start,e=$('#est'),b=$('#mini .hand');if(!e||X==null||!b)return;const left=Math.max(0,X-n),od=Math.max(0,n-X);
+ const bf=b.querySelector('.bfill');if(bf){bf.style.transition='transform .45s cubic-bezier(.3,1.3,.5,1)';bf.style.transform=`scaleX(${left/5})`}
+ let o=b.querySelector('.odm');if(od&&!o){o=document.createElement('div');o.className='odm';o.style.cssText='position:absolute;left:0;right:0;top:38px;height:15px;transition:opacity .35s';b.appendChild(o)}
+ if(o){o.innerHTML=od?odSVG(Math.min(5,od),{h:40,outline:false}):'';o.style.opacity=od?1:0}
+ b.style.position='relative';$('#mini').style.paddingBottom=od?'24px':'';
+ e.innerHTML=!n?'':(n>X?'看来今天会有点辛苦，量力而行哦<br>':'')+`今天要做的事大概要用 ${n} 格电`}
+function renderMini(){setTimeout(renderEst,30);$('#mini').innerHTML=`<div style="width:92px;height:34px;flex:none" class="hand">${batSVG(D.start,{h:100})}</div><div class="t"><b>${sumText(D.start,null)}</b> <span class="lite">点这里改</span><br>${MSG[D.start]}</div>`}
 $('#mini').onclick=()=>go('m1');
 function renderTags(box,mode){const on=new Set(D.must.map(m=>m.n));
  $(box).innerHTML=tags.map((t,i)=>`<button class="tag hand ${on.has(t.n)?'on':''}" data-i="${i}">${esc(t.n)} <span class="c">${bolts(t.c,12)}</span><span class="tx2" role="button" aria-label="删除">×</span></button>`).join('')+`<button class="tag add hand" data-new>＋ ${D.must.length||mode==='n'?'新的':'加一件今天要做的事'}</button>`;
  $(box).querySelectorAll('[data-i]').forEach(b=>b.onclick=e=>{if($(box).classList.contains('edit')){if(e.target.closest('.tx2'))delTag(+b.dataset.i,box,mode);else{b.classList.remove('nope');void b.offsetWidth;b.classList.add('nope');setTimeout(()=>b.classList.remove('nope'),400)}return}const t=tags[b.dataset.i],k=D.must.findIndex(m=>m.n===t.n);
   if(k>=0){D.must.splice(k,1);D.mustDone=D.mustDone.filter(n=>n!==t.n)}else{D.must.push({n:t.n,c:t.c});if(mode==='n')D.mustDone.push(t.n);vib()}
-  save();renderTags(box,mode);if(mode==='n')renderDid()});
+  save();renderTags(box,mode);if(mode==='m')renderEst();if(mode==='n')renderDid()});
  $(box).querySelector('[data-new]').onclick=()=>openAdd('tag',mode)}
 function delTag(i,box,mode){const t=tags[i],bk=JSON.stringify(D);tags.splice(i,1);LS.set('tags',tags);
  const k=D.must.findIndex(m=>m.n===t.n);if(k>=0&&mode!=='n'){D.must.splice(k,1);D.mustDone=D.mustDone.filter(n=>n!==t.n);save()}
