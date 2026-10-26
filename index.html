@@ -114,7 +114,7 @@ textarea.inp{resize:none;height:76px;line-height:1.5}
 .wself.ph{background:#fffaf0;border:1.5px dashed rgba(138,123,108,.45)}
 .wself:not(.ph):active{background:rgba(247,212,138,.25)}
 .selfc{font-size:12px;color:var(--soft);text-align:right;margin-top:4px}
-@media (prefers-reduced-motion:reduce){.wfin{transition:none;transform:none!important}.wface{transform:none;transition:opacity .25s}.wb{opacity:0;pointer-events:none}.wflip.back .wb{opacity:1;pointer-events:auto}.wflip.back .wf{opacity:0}}
+@media (prefers-reduced-motion:reduce){.wface{transform:none}}
 .cardbox{margin:16px auto 0;width:100%;max-width:330px}
 .cardbox canvas{width:100%;border-radius:8px;display:block;filter:drop-shadow(0 6px 14px rgba(74,63,53,.16)) drop-shadow(0 1px 2px rgba(74,63,53,.12))}
 .corner{position:absolute;top:calc(env(safe-area-inset-top) + 16px);right:18px}
@@ -710,10 +710,12 @@ async function openWeek(ks){WKN=ks[0];const w=weekSum(ks),ink=THEMES[2][1],im={}
  f.addEventListener('pointerup',e=>{if(!p0)return;const q=p0;p0=null;if(e.target.closest('#wself'))return;if(Math.hypot(e.clientX-q.x,e.clientY-q.y)<12&&Date.now()-q.t<450){last=Date.now();flipWeek()}});
  f.addEventListener('pointercancel',()=>{p0=null});
  f.addEventListener('click',e=>{if(e.target.closest('#wself'))return;if(Date.now()-last>600)flipWeek()})})();
-let flipping=false;function flipWeek(){if(flipping)return;const f=$('#wflip'),el=$('.wfin'),P='perspective(1100px) ';vib();
- if(matchMedia('(prefers-reduced-motion: reduce)').matches||!el.animate){f.classList.toggle('back');return}
- flipping=true;const a=el.animate([{transform:P+'rotateY(0deg)'},{transform:P+'rotateY(90deg) scale(.96)'}],{duration:260,easing:'cubic-bezier(.5,0,.9,.6)',fill:'forwards'});
- a.onfinish=()=>{f.classList.toggle('back');const b=el.animate([{transform:P+'rotateY(-90deg) scale(.96)'},{transform:P+'rotateY(8deg)',offset:.75},{transform:P+'rotateY(0deg)'}],{duration:420,easing:'cubic-bezier(.2,.7,.3,1)'});a.cancel();b.onfinish=()=>{flipping=false}}}
+let flipping=false;function flipWeek(){if(flipping)return;const f=$('#wflip'),el=$('.wfin');vib();
+ if(!el.animate){f.classList.toggle('back');return}
+ const rm=matchMedia('(prefers-reduced-motion: reduce)').matches;flipping=true;
+ // 2D 翻面：横向压扁到 0 → 中点换面 → 再展开；不依赖 3D，iOS / 主屏幕 / 减弱动态都能看到
+ const a=el.animate(rm?[{transform:'scaleX(1)',opacity:1},{transform:'scaleX(.02)',opacity:.55}]:[{transform:'scaleX(1) translateY(0)'},{transform:'scaleX(.02) translateY(-6px) scale(1.02)'}],{duration:rm?240:220,easing:'cubic-bezier(.5,0,.9,.6)',fill:'forwards'});
+ a.onfinish=()=>{f.classList.toggle('back');const b=el.animate(rm?[{transform:'scaleX(.02)',opacity:.55},{transform:'scaleX(1)',opacity:1}]:[{transform:'scaleX(.02) translateY(-6px) scale(1.02)'},{transform:'scaleX(1.04) translateY(-2px)',offset:.7},{transform:'scaleX(1) translateY(0)'}],{duration:rm?280:380,easing:'cubic-bezier(.2,.7,.3,1)'});a.cancel();b.onfinish=()=>{flipping=false};setTimeout(()=>{flipping=false},800)}}
 const WFS='"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif';
 function wBg(c,W,H){const t=THEMES[2];c.clearRect(0,0,W,H);let sd=7;const R=()=>(sd=(sd*16807)%2147483647)/2147483647;
  const g=c.createRadialGradient(W*.4,H*.3,60,W/2,H/2,W);g.addColorStop(0,'#fffcf4');g.addColorStop(1,'#f8efdc');c.fillStyle=g;rr(c,14,14,W-28,H-28,38,0);c.fill();
@@ -794,7 +796,7 @@ $('#wsave').onclick=async()=>{const bk=$('#wflip').classList.contains('back'),u=
 // 自动弹：周日晚上记完；或周日之后第一次打开用量页（上周记过≥1天）
 function autoWeek(sunday,dl){const mon=monOf(TODAY);if(!sunday)mon.setDate(mon.getDate()-7);const ks=weekKs(mon),seen=LS.get('wkSeen')||'';
  if(seen>=ks[0]||!ks.some(k=>hasRec(days[k])))return;LS.set('wkSeen',ks[0]);setTimeout(()=>openWeek(ks),dl!=null?dl:sunday?1400:600)}
-const BUILD='202610261619';function verChk(){if(location.protocol==='file:')return;fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/const BUILD='(\d+)'/);if(m&&m[1]!==BUILD&&!document.querySelector('.mask.on')&&sessionStorage.getItem('bmv')!==m[1]){sessionStorage.setItem('bmv',m[1]);location.replace(location.pathname+'?v='+m[1])}}).catch(()=>{})}
+const BUILD='202610270822';function verChk(){if(location.protocol==='file:')return;fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/const BUILD='(\d+)'/);if(m&&m[1]!==BUILD&&!document.querySelector('.mask.on')&&sessionStorage.getItem('bmv')!==m[1]){sessionStorage.setItem('bmv',m[1]);location.replace(location.pathname+'?v='+m[1])}}).catch(()=>{})}
 verChk();document.addEventListener('visibilitychange',()=>{if(!document.hidden)verChk()});
 /* ---------- 启动 ---------- */
 (function(){const y=days[YEST];st.tired=!!(y&&y.start!=null&&yOf(y)>y.start);
