@@ -364,11 +364,11 @@ for(let i=0;i<5;i++){const x=14+i*cell;s+=`<rect x="${x+3}" y="3" width="${cell-
 return s+'</svg>'}
 function bolts(c,sz){sz=sz||12;let h='';const P='M6 0L1 9h4l-1 7 6-10H6l1-6z';for(let i=0;i<Math.ceil(c-1e-6);i++){const half=c-i<1;h+=`<svg width="${sz*.66}" height="${sz}" viewBox="0 0 10 16" style="vertical-align:-2px;margin-right:1px;overflow:visible"><path d="${P}" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" opacity="${half?.45:1}"/><svg width="${half?5:10}" height="16" viewBox="0 0 ${half?5:10} 16"><path d="${P}" fill="#f2b84b" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg></svg>`}return `<span class="hand" style="display:inline-block;white-space:nowrap">${h}</span>`}
 
-function makeDrag(wrap,get,set,onEnd){let drag=false;const rect=()=>wrap.getBoundingClientRect();
-function val(e){const r=rect();const x=(e.clientX-r.left)/(r.width*300/340);return Math.max(0,Math.min(5,x*5*(300/272)-(14/272)*5))}
-wrap.addEventListener('pointerdown',e=>{drag=true;wrap.setPointerCapture(e.pointerId);set(val(e),false)});
-let raf=0,lv=0;wrap.addEventListener('pointermove',e=>{if(!drag)return;lv=val(e);if(!raf)raf=requestAnimationFrame(()=>{raf=0;if(drag)set(lv,false)})});
-const up=e=>{if(!drag)return;drag=false;if(raf){cancelAnimationFrame(raf);raf=0}set(val(e),true);onEnd&&onEnd()};
+function makeDrag(wrap,get,set,onEnd){let drag=false,R=null,raf=0,lv=0;
+function val(e){const r=R||wrap.getBoundingClientRect();const x=(e.clientX-r.left)/(r.width*300/340);return Math.max(0,Math.min(5,x*5*(300/272)-(14/272)*5))}
+wrap.addEventListener('pointerdown',e=>{drag=true;R=wrap.getBoundingClientRect();wrap.setPointerCapture(e.pointerId);set(val(e),false,true)});
+wrap.addEventListener('pointermove',e=>{if(!drag)return;lv=val(e);if(!raf)raf=requestAnimationFrame(()=>{raf=0;if(drag)set(lv,false)})});
+const up=e=>{if(!drag)return;drag=false;if(raf){cancelAnimationFrame(raf);raf=0}set(val(e),true);R=null;onEnd&&onEnd()};
 wrap.addEventListener('pointerup',up);wrap.addEventListener('pointercancel',up)}
 
 function rr(c,x,y,w,h,r,j){c.beginPath();const J=()=>(Math.random()-.5)*j;c.moveTo(x+r+J(),y+J());c.lineTo(x+w-r+J(),y+J());c.quadraticCurveTo(x+w,y,x+w+J(),y+r);c.lineTo(x+w+J(),y+h-r);c.quadraticCurveTo(x+w,y+h,x+w-r,y+h+J());c.lineTo(x+r,y+h+J());c.quadraticCurveTo(x,y+h,x+J(),y+h-r);c.lineTo(x+J(),y+r);c.quadraticCurveTo(x,y,x+r,y);c.closePath()}
@@ -433,12 +433,16 @@ function yFromX(px){const e=UG.body+UG.knob;if(px>e+6){return Math.min(10,5+Math
 
 /* ---------- 早上：选电量 ---------- */
 let lastSnap=null;
-function renderBat(el,msgEl,fill,snap){const l=Math.max(1,Math.min(5,Math.ceil(fill-0.0001)));
- const bf=$(el).querySelector('.bfill');if(bf){const v=Math.max(0,Math.min(5,snap?l:fill))/5;bf.style.transition=snap?'transform .45s cubic-bezier(.3,1.6,.5,1)':'none';bf.style.transform=`scaleX(${v.toFixed(4)})`}else $(el).innerHTML=batSVG(snap?l:fill,{anim:snap});
+function renderBat(el,msgEl,fill,snap,start){const l=Math.max(1,Math.min(5,Math.ceil(fill-0.0001)));
+ let bf=$(el).querySelector('.bfill');if(!bf){$(el).innerHTML=batSVG(snap?l:fill,{anim:snap});bf=$(el).querySelector('.bfill')}
+ const g=bf.parentNode;
+ if(!snap){if(start){g.removeAttribute('filter');bf.style.transition='none'}bf.style.transform=`scaleX(${(Math.max(0,Math.min(5,fill))/5).toFixed(4)})`;return}
+ bf.style.transition='transform .2s ease-out';bf.style.transform=`scaleX(${l/5})`;
+ clearTimeout(bf._t);bf._t=setTimeout(()=>{g.setAttribute('filter','url(#crayon)');bf.style.transition='none'},220);
  if(l!==lastSnap){vib();lastSnap=l;const m=$(msgEl);m.style.opacity=0;setTimeout(()=>{m.textContent=MSG[l];m.style.opacity=1},160)}
  if(st.level!==l||snap)theme(l);st.level=l}
-makeDrag($('#batwrap'),()=>st.level,(v,snap)=>renderBat('#bat','#msg',v,snap));
-makeDrag($('#batwrapN'),()=>st.level,(v,snap)=>renderBat('#batN','#msgN',v,snap));
+makeDrag($('#batwrap'),()=>st.level,(v,snap,st0)=>renderBat('#bat','#msg',v,snap,st0));
+makeDrag($('#batwrapN'),()=>st.level,(v,snap,st0)=>renderBat('#batN','#msgN',v,snap,st0));
 function initBat(el,msgEl){st.level=D.start||st.level||3;lastSnap=st.level;$(msgEl).textContent=MSG[st.level];renderBat(el,msgEl,st.level,true)}
 function setStart(l){const old=D.start;D.start=l;save()}
 
@@ -531,11 +535,28 @@ function renderUsed(y){Y=Math.max(0,Math.min(10,y));const X=D.start;
  if(N>0&&Y!==N&&!fillT){h.innerHTML=`<button class="estb" id="estb">按打勾的事，大概 <u>${N}</u> 格</button>`;$('#estb').onclick=()=>fillTo(N)}
  else if(!fillT)h.textContent=Y>=5&&Y<10?'满了还能继续往右拖 →':'';}
 let fillT=null;function fillTo(n){clearInterval(fillT);let y=Y;const d=n>y?1:-1;fillT=setInterval(()=>{y+=d;vib();renderUsed(y);if(y===n){clearInterval(fillT);fillT=null;D.actual=n;D.manual=true;save();renderUsed(n)}},140)}
-(function(){const w=$('#ubat');let drag=false;const px=e=>{const r=w.getBoundingClientRect();return (e.clientX-r.left)/r.width*UV.w+UV.l};
+(function(){const w=$('#ubat');let drag=false,R=null,M=null,raf=0,lx=0,ov=null,lastY=null;const px=e=>{const r=R||w.getBoundingClientRect();return (e.clientX-r.left)/r.width*UV.w+UV.l};
  let anc=null;const yRel=x=>{const e=UG.body+UG.knob;if(anc==null){const y=yFromX(x);if(y>=5&&x>e){anc=Math.min(x,e+6)}return y}if(x<anc-UG.c*.5){anc=null;return yFromX(x)}return Math.max(5,Math.min(10,5+Math.floor((x-anc)/UG.c+.35)))};
- const upd=e=>{const y=yRel(px(e));if(y!==Y){vib();bump();D.actual=y;D.manual=true;save();renderUsed(y)}};
- w.addEventListener('pointerdown',e=>{const b=e.target.closest('[data-bolt]');if(b){const y=5+(+b.dataset.bolt);vib();D.actual=y;D.manual=true;save();renderUsed(y);return}drag=true;w.setPointerCapture(e.pointerId);const x0=px(e);anc=(Y>=5&&x0>UG.body*.6)?x0-(Y-5)*UG.c:null;if(anc==null)upd(e)});w.addEventListener('pointermove',e=>{if(drag)upd(e)});
- const up=()=>{if(drag){drag=false;if(D.actual==null){D.actual=Y;save()}}};w.addEventListener('pointerup',up);w.addEventListener('pointercancel',up)})();
+ // 拖动时：只移动一层轻量填充条（transform），不重画、不震动、不改文字
+ function mkOv(){const sv=w.querySelector('svg');if(!sv)return null;const m=sv.getScreenCTM(),r=w.getBoundingClientRect(),X=D.start||0;
+  const P=(x,y)=>({x:m.a*x+m.e-r.left,y:m.d*y+m.f-r.top});const p0=P(UG.pad+3,9),p1=P(UG.pad+5*UG.c-3,UG.h-9),cw=(p1.x-p0.x),hh=p1.y-p0.y;
+  if(getComputedStyle(w).position==='static')w.style.position='relative';
+  const o=document.createElement('div');o.style.cssText=`position:absolute;left:${p0.x}px;top:${p0.y}px;width:${cw}px;height:${hh}px;pointer-events:none;border-radius:8px;overflow:hidden`;
+  const a=document.createElement('div'),b=document.createElement('div');
+  a.style.cssText=`position:absolute;left:0;top:0;height:100%;width:${cw*X/5}px;background:var(--fill);border-radius:7px;transform-origin:left center;will-change:transform;transform:scaleX(0)`;
+  b.style.cssText=`position:absolute;left:${cw*X/5}px;top:0;height:100%;width:${cw*(5-X)/5}px;background:repeating-linear-gradient(135deg,#c3dbf0 0 5px,#e6f0fa 5px 10px);border:2px dashed #8fb0d2;box-sizing:border-box;border-radius:7px;transform-origin:left center;will-change:transform;transform:scaleX(0)`;
+  o.append(a,b);w.appendChild(o);o._a=a;o._b=b;o._X=X;return o}
+ function paint(v,ms){if(!ov)return;const X=ov._X,va=Math.max(0,Math.min(v,X)),vb=Math.max(0,Math.min(v,5)-X);const t=ms?`transform ${ms}ms ease-out`:'none';
+  ov._a.style.transition=ov._b.style.transition=t;ov._a.style.transform=`scaleX(${X?va/X:0})`;ov._b.style.transform=`scaleX(${5-X?vb/(5-X):0})`}
+ const cont=x=>Math.max(0,Math.min(5,(x-UG.pad)/UG.c));
+ function start(e){drag=true;R=w.getBoundingClientRect();w.setPointerCapture(e.pointerId);const x0=px(e);anc=(Y>=5&&x0>UG.body*.6)?x0-(Y-5)*UG.c:null;
+  w.innerHTML=usedSVG(D.start,0).replace(/<g data-bolt[\s\S]*?<\/g><\/g>/g,'');ov=mkOv();paint(Math.min(Y,5),0);lastY=null;move(x0)}
+ function move(x){const y=yRel(x);paint(y>5?5:cont(x),0);if(y!==lastY)$('#utext').textContent=sumText(D.start,y);lastY=y}
+ w.addEventListener('pointerdown',e=>{const b=e.target.closest('[data-bolt]');if(b){const y=5+(+b.dataset.bolt);vib();D.actual=y;D.manual=true;save();renderUsed(y);return}start(e)});
+ w.addEventListener('pointermove',e=>{if(!drag)return;lx=px(e);if(!raf)raf=requestAnimationFrame(()=>{raf=0;if(drag)move(lx)})});
+ const up=e=>{if(!drag)return;drag=false;if(raf){cancelAnimationFrame(raf);raf=0}const y=yRel(px(e));R=null;paint(Math.min(5,y),200);
+  setTimeout(()=>{if(drag)return;if(ov){ov.remove();ov=null}if(y!==Y)vib();D.actual=y;D.manual=true;save();renderUsed(y)},210)};
+ w.addEventListener('pointerup',up);w.addEventListener('pointercancel',up)})();
 function initUsed(){if(!D.manual)D.actual=null;renderUsed(D.manual?D.actual:0)}
 
 function initN3(){$('#moods').innerHTML=MOODS.map(m=>`<div class="mood hand ${D.mood===m?'on':''}" data-m="${m}">${moodSvg(m)}</div>`).join('');
