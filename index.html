@@ -101,13 +101,13 @@ body.lock{overflow:hidden;touch-action:none}
 textarea.inp{resize:none;height:76px;line-height:1.5}
 /* card */
 .wflip{-webkit-perspective:1400px;perspective:1400px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:transform .15s;width:min(100%,290px,calc((100dvh - 200px)*.75));margin:4px auto 0;cursor:pointer;aspect-ratio:660/880}
-.wfin{position:relative;width:100%;height:100%;-webkit-transform-style:preserve-3d;transform-style:preserve-3d;transition:transform .75s cubic-bezier(.3,1.35,.45,1)}
-.wflip.back .wfin{-webkit-transform:rotateY(180deg);transform:rotateY(180deg)}
-.wface{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:10px;-webkit-transform:rotateY(0deg) translateZ(1px);transform:rotateY(0deg) translateZ(1px)}
+.wfin{position:relative;width:100%;height:100%;will-change:transform}
+
+.wface{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:10px}
 .wface img{width:100%;display:block;border-radius:10px;box-shadow:0 6px 14px rgba(74,63,53,.16),0 1px 2px rgba(74,63,53,.12);-webkit-touch-callout:default;-webkit-user-select:auto;user-select:auto}
 #mWeek .sheet{overflow:visible}
-.wface{transition:visibility 0s linear .28s}.wflip:not(.back) .wb,.wflip.back .wf{visibility:hidden}
-.wface.wb{-webkit-transform:rotateY(180deg) translateZ(1px);transform:rotateY(180deg) translateZ(1px)}
+.wflip:not(.back) .wb,.wflip.back .wf{visibility:hidden}
+
 .wflip:active{transform:scale(.98)}
 .wself{position:absolute;left:8.5%;top:19.3%;width:83%;height:10.4%;border:0;border-radius:12px;background:transparent;font:inherit;color:#a8988a;font-size:14px;text-align:left;padding:0 0 0 4%;cursor:text;pointer-events:none;-webkit-tap-highlight-color:transparent}
 .wflip.back .wself{pointer-events:auto}
@@ -484,8 +484,7 @@ $('#mineAdd').onclick=()=>openAdd('mine');
 $('#mineRestore').onclick=()=>{const miss=ITEMS.filter(x=>!menu.some(m=>m.t===x[0]));if(!miss.length){toast('默认的小事都在菜单里啦');return}$('#mineAsk').hidden=false};
 $('#mineNo').onclick=()=>{$('#mineAsk').hidden=true};
 $('#mineYes').onclick=()=>{const bk=menu.slice();ITEMS.forEach(x=>{if(!menu.some(m=>m.t===x[0]))menu.push({t:x[0],tier:x[1],ic:x[2]})});$('#mineAsk').hidden=true;const n=menu.length-bk.length;saveMenu();toast('加回了 '+n+' 件默认小事',()=>{menu=bk;saveMenu()})};
-function toggleDone(el,e){const t=el.dataset.t,k=D.done.indexOf(t),on=k<0;if(!on)D.done.splice(k,1);else{D.done.push(t);bubbles(el,e);vib()}save();syncDone();
- if(on&&D.done.length===1)toast(DK===YEST?'记到昨天啦':'充上电啦，今天的卡片里会有它')}
+function toggleDone(el,e){const t=el.dataset.t,k=D.done.indexOf(t),on=k<0;if(!on)D.done.splice(k,1);else{D.done.push(t);bubbles(el,e);vib()}save();syncDone();}
 function syncDone(){$$('#menuA .item,#menuB .item').forEach(x=>x.classList.toggle('done',D.done.includes(x.dataset.t)));if(cur==='n1')renderDid();if(cur==='c1')drawCard()}
 $$('[data-shuffle]').forEach(b=>b.onclick=()=>{st.shuffle++;renderMenu('#menuA');renderMenu('#menuB')});
 $$('[data-addmine]').forEach(b=>b.onclick=()=>openAdd('mine'));
@@ -663,7 +662,7 @@ function weekKs(mon){const a=[];for(let i=0;i<7;i++){const d=new Date(mon);d.set
 function renderSum(rk){const el=$('#wsum');if(!el)return;if(wkOff!==0||!rk.length){el.remove();return}const w=weekSum(lastKs());
  const ks7=weekKs(monOf(TODAY)),fbt=esc((w7=>wkFb(weekTitle(w7,ks7)[0],w7,ks7))(weekSum(ks7))),l2=fbt.replace('充充电','<button class="chg" id="wchg">充充电</button>');
  el.innerHTML=`<div class="wl">${w.lines[0]}</div><div class="wl">${l2}<button class="lk2" id="wopen">周卡 ›</button></div>`;
- const c=$('#wchg');if(c)c.onclick=()=>{renderMenu('#menuB');$('#mMenu').classList.add('on')};$('#wopen').onclick=()=>openWeek(weekKs(monOf(TODAY)))}
+ const c=$('#wchg');if(c)c.onclick=()=>{renderMenu('#menuB');$('#mMenu').classList.add('on')};$('#wopen').onclick=()=>{let ks=weekKs(monOf(TODAY));if(!ks.some(k=>hasRec(days[k]))){const m=monOf(TODAY);m.setDate(m.getDate()-7);ks=weekKs(m)}openWeek(ks)}}
 let WKN='';
 function moodImg(m,ink){return new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(moodSvg(m,ink).replace('<svg','<svg xmlns="http://www.w3.org/2000/svg" width="88" height="88"'))})}
 function weekTitle(w,ks){const n=w.n,ne=w.ek.length;let L=0,O=0,M=0;w.rk.forEach(k=>{const d=days[k];if(hasE(d)){const v=d.start-yOf(d);if(v>0)L++;else if(v<0)O++}M+=(d.done||[]).length});
@@ -680,13 +679,16 @@ function wkFb(tt,w,ks){const a=FB[tt]||FB['慢慢充电周'];let h=0;for(const c
  const ok=a.filter(x=>t||!x.includes('{t}'));let r=ok[h%ok.length].replace('{t}',t||'');return r}
 async function openWeek(ks){WKN=ks[0];const w=weekSum(ks),ink=THEMES[2][1],im={};for(const k of ks){const d=days[k];if(d&&d.mood)im[k]=await moodImg(d.mood,ink)}
  WKW=[ks,w,im];drawWeek(ks,w,im);drawWeekB(ks,w,im);const f=$('#wflip');f.classList.remove('back');$('.wb').scrollTop=0;
- $('#wfhint').style.visibility=LS.get('wkFlipped')?'hidden':'';$('#mWeek').classList.add('on')}
+ $('#mWeek').classList.add('on')}
 (function(){const f=$('#wflip');let p0=null,last=0;
  f.addEventListener('pointerdown',e=>{p0={x:e.clientX,y:e.clientY,t:Date.now()}});
  f.addEventListener('pointerup',e=>{if(!p0)return;const q=p0;p0=null;if(e.target.closest('#wself'))return;if(Math.hypot(e.clientX-q.x,e.clientY-q.y)<12&&Date.now()-q.t<450){last=Date.now();flipWeek()}});
  f.addEventListener('pointercancel',()=>{p0=null});
  f.addEventListener('click',e=>{if(e.target.closest('#wself'))return;if(Date.now()-last>600)flipWeek()})})();
-function flipWeek(){const f=$('#wflip');f.classList.toggle('back');vib();if(!LS.get('wkFlipped')){LS.set('wkFlipped',1);setTimeout(()=>$('#wfhint').style.visibility='hidden',600)}};
+let flipping=false;function flipWeek(){if(flipping)return;const f=$('#wflip'),el=$('.wfin'),P='perspective(1100px) ';vib();
+ if(matchMedia('(prefers-reduced-motion: reduce)').matches||!el.animate){f.classList.toggle('back');return}
+ flipping=true;const a=el.animate([{transform:P+'rotateY(0deg)'},{transform:P+'rotateY(90deg) scale(.96)'}],{duration:260,easing:'cubic-bezier(.5,0,.9,.6)',fill:'forwards'});
+ a.onfinish=()=>{f.classList.toggle('back');const b=el.animate([{transform:P+'rotateY(-90deg) scale(.96)'},{transform:P+'rotateY(8deg)',offset:.75},{transform:P+'rotateY(0deg)'}],{duration:420,easing:'cubic-bezier(.2,.7,.3,1)'});a.cancel();b.onfinish=()=>{flipping=false}}}
 const WFS='"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif';
 function wBg(c,W,H){const t=THEMES[2];c.clearRect(0,0,W,H);let sd=7;const R=()=>(sd=(sd*16807)%2147483647)/2147483647;
  const g=c.createRadialGradient(W*.4,H*.3,60,W/2,H/2,W);g.addColorStop(0,'#fffcf4');g.addColorStop(1,'#f8efdc');c.fillStyle=g;rr(c,14,14,W-28,H-28,38,0);c.fill();
