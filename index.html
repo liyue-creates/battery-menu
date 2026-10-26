@@ -76,7 +76,7 @@ h2{font-size:17px;margin:18px 0 8px;font-weight:700;display:flex;align-items:cen
 .item.done .ck::after{content:"";width:9px;height:5px;border-left:3px solid var(--ink);border-bottom:3px solid var(--ink);transform:rotate(-45deg) translate(1px,-1px)}
 .bub{position:absolute;border-radius:50%;border:2px solid var(--ink);background:var(--fill2);pointer-events:none;animation:bub 1s ease-out forwards}
 @keyframes conf{0%{opacity:1;transform:translate(0,0) rotate(0) scale(.5)}60%{opacity:1}100%{opacity:0;transform:translate(var(--dx),var(--dy)) rotate(var(--r)) scale(1)}}
-#confL{position:fixed;inset:0;pointer-events:none;z-index:60;overflow:visible}.conf{position:fixed;pointer-events:none;animation:conf .7s cubic-bezier(.15,.8,.35,1) forwards}.conf.soft{animation:confs .8s ease-out forwards!important}@keyframes confs{0%{opacity:0;transform:translate(0,0) scale(.6)}30%{opacity:1}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1)}}
+#confL{position:fixed;inset:0;pointer-events:none;z-index:60;overflow:visible}.conf{position:fixed;pointer-events:none;animation:conf .9s cubic-bezier(.15,.8,.35,1) forwards}.conf.soft{animation:confs .9s ease-out forwards!important}@keyframes confs{0%{opacity:0;transform:translate(0,0) scale(.6)}30%{opacity:1}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1)}}
 @keyframes bub{from{opacity:.9;transform:translate(0,0) scale(.4)}to{opacity:0;transform:translate(var(--dx),-60px) scale(1.1)}}
 /* sheet */
 .mask{position:fixed;inset:0;width:100vw;height:100%;background:rgba(90,70,50,.22);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);display:flex;align-items:flex-end;justify-content:center;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .32s ease,visibility 0s linear .45s;z-index:20;overscroll-behavior:contain}
@@ -374,12 +374,14 @@ wrap.addEventListener('pointerup',up);wrap.addEventListener('pointercancel',up)}
 function rr(c,x,y,w,h,r,j){c.beginPath();const J=()=>(Math.random()-.5)*j;c.moveTo(x+r+J(),y+J());c.lineTo(x+w-r+J(),y+J());c.quadraticCurveTo(x+w,y,x+w+J(),y+r);c.lineTo(x+w+J(),y+h-r);c.quadraticCurveTo(x+w,y+h,x+w-r,y+h+J());c.lineTo(x+r,y+h+J());c.quadraticCurveTo(x,y+h,x+J(),y+h-r);c.lineTo(x+J(),y+r);c.quadraticCurveTo(x,y,x+r,y);c.closePath()}
 function crayonFill(c,x,y,w,h,col){c.save();c.beginPath();c.rect(x,y,w,h);c.clip();c.strokeStyle=col;c.lineCap='round';for(let i=-h;i<w;i+=5){c.globalAlpha=.55+Math.random()*.4;c.lineWidth=5+Math.random()*3;c.beginPath();c.moveTo(x+i,y+h+4);c.lineTo(x+i+h+Math.random()*6,y-4);c.stroke()}c.restore();c.globalAlpha=1}
 function wrapText(c,t,x,y,mw,lh){let line='',ys=y;for(const ch of t){if(c.measureText(line+ch).width>mw){c.fillText(line,x,ys);line=ch;ys+=lh}else line+=ch}c.fillText(line,x,ys);return ys}
-function bubbles(el,e){const rm=matchMedia('(prefers-reduced-motion: reduce)').matches,ck=el.querySelector('.ck'),q=(ck||el).getBoundingClientRect();const cx=ck?q.left+q.width/2:q.right-30,cy=q.top+q.height/2;
+function bubbles(el,e){const rm=matchMedia('(prefers-reduced-motion: reduce)').matches,q=el.getBoundingClientRect();
  let L=document.getElementById('confL');if(!L){L=document.createElement('div');L.id='confL';document.body.appendChild(L)}
- const cols=['#f4b860','#f19a9a','#f7d48a','#e98a6b','#f6c9a0','#a8d5a2'],N=rm?6:14;
- for(let i=0;i<N;i++){const sp=document.createElement('span');sp.className=rm?'conf soft':'conf';const col=cols[i%cols.length],a=(i/N)*Math.PI*2+(Math.random()-.5)*.5,d=rm?14:32+Math.random()*22,k=i%3;
-  sp.innerHTML=k===0?`<svg width="7" height="5" viewBox="0 0 10 7"><path d="M1 2l8-1-1 5-7 0z" fill="${col}"/></svg>`:k===1?`<svg width="6" height="6" viewBox="0 0 9 9"><circle cx="4.5" cy="4.5" r="3.6" fill="${col}"/></svg>`:`<svg width="8" height="6" viewBox="0 0 12 8"><path d="M1 5q2-4 4 0t5 0" fill="none" stroke="${col}" stroke-width="2.4" stroke-linecap="round"/></svg>`;
-  sp.style.cssText=`left:${cx-4}px;top:${cy-3}px;--dx:${Math.cos(a)*d}px;--dy:${Math.sin(a)*d}px;--r:${rm?0:(Math.random()-.5)*300}deg;animation-delay:${rm?0:Math.random()*.04}s`;L.appendChild(sp);setTimeout(()=>sp.remove(),rm?900:800)}}
+ const cols=['#f4b860','#f19a9a','#f7d48a','#e98a6b','#f6c9a0','#a8d5a2'],N=rm?10:24;
+ for(let i=0;i<N;i++){const sp=document.createElement('span');sp.className=rm?'conf soft':'conf';const col=cols[i%cols.length],k=i%3,z=rm?1.2:1.5+Math.random()*.6;
+  const ox=q.left+q.width*(.12+.76*(i+.5)/N)+(Math.random()-.5)*16,oy=q.top+q.height*(.2+Math.random()*.25);
+  const a=-Math.PI/2+(Math.random()-.5)*1.9,d=rm?26+Math.random()*14:80+Math.random()*40;
+  sp.innerHTML=k===0?`<svg width="${7*z}" height="${5*z}" viewBox="0 0 10 7"><path d="M1 2l8-1-1 5-7 0z" fill="${col}"/></svg>`:k===1?`<svg width="${6*z}" height="${6*z}" viewBox="0 0 9 9"><circle cx="4.5" cy="4.5" r="3.6" fill="${col}"/></svg>`:`<svg width="${8*z}" height="${6*z}" viewBox="0 0 12 8"><path d="M1 5q2-4 4 0t5 0" fill="none" stroke="${col}" stroke-width="2.4" stroke-linecap="round"/></svg>`;
+  sp.style.cssText=`left:${ox-4}px;top:${oy-3}px;--dx:${Math.cos(a)*d}px;--dy:${Math.sin(a)*d}px;--r:${rm?0:(Math.random()-.5)*420}deg;animation-delay:${rm?0:Math.random()*.08}s`;L.appendChild(sp);setTimeout(()=>sp.remove(),rm?1000:1100)}}
 const TIERS=['躺着就行','动一动','有力气时'],TEMO=['🛏️','🌿','☀️'];
 const MOODS=['cry','meh','ok','smile','yay'];
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
