@@ -771,6 +771,8 @@ $('#wsave').onclick=async()=>{const bk=$('#wflip').classList.contains('back'),u=
 // 自动弹：周日晚上记完；或周日之后第一次打开用量页（上周记过≥1天）
 function autoWeek(sunday,dl){const mon=monOf(TODAY);if(!sunday)mon.setDate(mon.getDate()-7);const ks=weekKs(mon),seen=LS.get('wkSeen')||'';
  if(seen>=ks[0]||!ks.some(k=>hasRec(days[k])))return;LS.set('wkSeen',ks[0]);setTimeout(()=>openWeek(ks),dl!=null?dl:sunday?1400:600)}
+const BUILD='202610261619';function verChk(){if(location.protocol==='file:')return;fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/const BUILD='(\d+)'/);if(m&&m[1]!==BUILD&&!document.querySelector('.mask.on')&&sessionStorage.getItem('bmv')!==m[1]){sessionStorage.setItem('bmv',m[1]);location.replace(location.pathname+'?v='+m[1])}}).catch(()=>{})}
+verChk();document.addEventListener('visibilitychange',()=>{if(!document.hidden)verChk()});
 /* ---------- 启动 ---------- */
 (function(){const y=days[YEST];st.tired=!!(y&&y.start!=null&&yOf(y)>y.start);
  const wh=st.tired?`<div class="warm hand"><span class="wi">🫶</span><div><b>昨天辛苦啦</b>今天慢慢来，菜单里多放了几件轻松的小事 ☁️</div></div>`:'';$('#warm').innerHTML=wh;$('#warm2').innerHTML=wh.replace('class="warm','style="margin:0 0 14px" class="warm');
