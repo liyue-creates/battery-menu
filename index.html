@@ -443,11 +443,7 @@ function initBat(el,msgEl){st.level=D.start||st.level||3;lastSnap=st.level;$(msg
 function setStart(l){const old=D.start;D.start=l;save()}
 
 /* ---------- 早上：菜单 ---------- */
-function renderEst(){const n=mustSum(D),X=D.start,e=$('#est'),b=$('#mini .hand');if(!e||X==null||!b)return;const left=Math.max(0,X-n),od=Math.max(0,n-X);
- const bf=b.querySelector('.bfill');if(bf){bf.style.transition='transform .45s cubic-bezier(.3,1.3,.5,1)';bf.style.transform=`scaleX(${left/5})`}
- let o=b.querySelector('.odm');if(od&&!o){o=document.createElement('div');o.className='odm';o.style.cssText='position:absolute;left:0;right:0;top:38px;height:15px;transition:opacity .35s';b.appendChild(o)}
- if(o){o.innerHTML=od?odSVG(Math.min(5,od),{h:40,outline:false}):'';o.style.opacity=od?1:0}
- b.style.position='relative';$('#mini').style.paddingBottom=od?'24px':'';
+function renderEst(){const n=mustSum(D),X=D.start,e=$('#est');if(!e||X==null)return;
  e.innerHTML=!n?'':(n>X?'看来今天会有点辛苦，量力而行哦<br>':'')+`今天要做的事大概要用 ${n} 格电`}
 function renderMini(){setTimeout(renderEst,30);$('#mini').innerHTML=`<div style="width:92px;height:34px;flex:none" class="hand">${batSVG(D.start,{h:100})}</div><div class="t"><b>${sumText(D.start,null)}</b> <span class="lite">点这里改</span><br>${MSG[D.start]}</div>`}
 $('#mini').onclick=()=>go('m1');
