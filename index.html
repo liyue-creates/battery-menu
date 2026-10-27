@@ -140,6 +140,7 @@ textarea.inp{resize:none;height:76px;line-height:1.5}
 .seg2 button{font:inherit;font-size:13px;border:none;background:var(--card);color:var(--ink);padding:5px 12px}.seg2 button.on{background:var(--fill2);font-weight:700}
 .hello{text-align:center;font-size:23px}
 .lite{font-size:12px;color:var(--soft);font-weight:400}
+.ynav{font-size:13.5px;color:var(--soft);margin:0 0 8px;min-height:20px}.ynav b{color:var(--ink);font-weight:600}
 .foot{text-align:center;color:var(--soft);font-size:13px;margin:16px 0 0}
 .back{align-self:flex-start;padding:0;margin-bottom:2px}
 .ubat{margin:34px -20px 6px;touch-action:none;user-select:none}
@@ -200,7 +201,8 @@ body{-webkit-user-select:none;user-select:none}textarea,input{-webkit-user-selec
  <section class="screen" id="m1">
   <div class="mid">
   <div style="margin:auto 0;padding-bottom:6vh">
-   <h1 class="hello">早上好呀，今天能量怎么样？</h1>
+   <div class="ynav" id="ynav1" style="text-align:center"></div>
+   <h1 class="hello" id="m1h">早上好呀，今天能量怎么样？</h1>
    <div id="warm"></div>
    <div class="batwrap" id="batwrap" style="margin-top:30px"><div class="bat hand" id="bat"></div></div>
    <div class="msg" id="msg" style="margin-top:20px"></div>
@@ -211,9 +213,10 @@ body{-webkit-user-select:none;user-select:none}textarea,input{-webkit-user-selec
  <!-- 早上 2 -->
  <section class="screen" id="m2">
   <div class="mid">
+  <div class="ynav" id="ynav2"></div>
   <div id="warm2"></div>
   <div class="mini" id="mini"></div><div id="est" style="text-align:center;margin:8px 0 0;font-size:14px;color:var(--soft);line-height:1.65"></div>
-  <h2>今天必须做的事 <span class="lite">可选 · 点一下加上</span> <button class="lk" data-edit="tags">整理</button></h2>
+  <h2><span id="mustH">今天必须做的事</span> <span class="lite">可选 · 点一下加上</span> <button class="lk" data-edit="tags">整理</button></h2>
   <div class="tags" id="tags"></div>
   <h2>多巴胺菜单 <span><button class="lk" data-mymenu>我的菜单</button> <button class="btn ghost" data-shuffle>换一换 ↻</button></span></h2>
   <div class="menu" id="menuA"></div>
@@ -450,8 +453,8 @@ function setStart(l){const old=D.start;D.start=l;save()}
 
 /* ---------- 早上：菜单 ---------- */
 function renderEst(){const n=mustSum(D),X=D.start,e=$('#est');if(!e||X==null)return;
- e.innerHTML=!n?'':(n>X?'看来今天会有点辛苦，量力而行哦<br>':'')+`今天要做的事大概要用 ${n} 格电`}
-function renderMini(){setTimeout(renderEst,30);$('#mini').innerHTML=`<div style="width:92px;height:34px;flex:none" class="hand">${batSVG(D.start,{h:100})}</div><div class="t"><b>${sumText(D.start,null)}</b> <span class="lite">点这里改</span><br>${MSG[D.start]}</div>`}
+ e.innerHTML=!n?'':(n>X?(viewY?'昨天的事有点多，辛苦啦<br>':'看来今天会有点辛苦，量力而行哦<br>'):'')+`${viewY?'昨天':'今天'}要做的事大概要用 ${n} 格电`}
+function renderMini(){setTimeout(renderEst,30);$('#mini').innerHTML=`<div style="width:92px;height:34px;flex:none" class="hand">${batSVG(D.start,{h:100})}</div><div class="t"><b>${viewY?`昨天 ${D.start} 格电`:sumText(D.start,null)}</b> <span class="lite">点这里改</span><br>${MSG[D.start]}</div>`}
 $('#mini').onclick=()=>go('m1');
 function renderTags(box,mode){const on=new Set(D.must.map(m=>m.n));
  $(box).innerHTML=tags.map((t,i)=>`<button class="tag hand ${on.has(t.n)?'on':''}" data-i="${i}">${esc(t.n)} <span class="c">${bolts(t.c,12)}</span><span class="tx2" role="button" aria-label="删除">×</span></button>`).join('')+`<button class="tag add hand" data-new>＋ ${D.must.length||mode==='n'?'新的':'加一件今天要做的事'}</button>`;
@@ -653,10 +656,16 @@ function refreshReviewBtn(){$('#openReview').hidden=recKeys().length<2}
 
 /* ---------- 导航 ---------- */
 const ALL=['m1','m2','n0','n1','n2','n3','c1','u1'];let cur=null,mode='am';
+let viewY=false;
+function renderYnav(){const t=viewY?'<b>正在看昨天</b> · 改好会自动存下 · <button class="lk" data-ytoday>回到今天 ›</button>':'<button class="lk" data-yest>‹ 昨天</button>';$$('.ynav').forEach(e=>e.innerHTML=t);
+ $('#m1h').textContent=viewY?'昨天一开始大概有几格电？':'早上好呀，今天能量怎么样？';$('#mustH').textContent=viewY?'昨天必须做的事':'今天必须做的事';$('#warm2').style.display=viewY?'none':''}
+function toYest(on){viewY=on;DK=on?YEST:TODAY;D=getDay(DK);st.level=D.start||3;lastSnap=null;vib();go(D.start?'m2':'m1')}
+document.addEventListener('click',e=>{if(e.target.closest('[data-yest]'))toYest(true);else if(e.target.closest('[data-ytoday]'))toYest(false)});
 function setMode(m){mode=m;$$('#sw button').forEach(b=>b.classList.toggle('on',b.dataset.m===m))}
-function go(id){if(cur==='c1'&&id!=='c1'&&wkPend){wkPend=false;setTimeout(()=>autoWeek(true,450),0)}if((id==='m1'||id==='m2')&&DK!==TODAY){DK=TODAY;D=getDay(DK);st.level=D.start||3}const idx=ALL.indexOf(id),ci=ALL.indexOf(cur);ALL.forEach((s,k)=>{const e=$('#'+s);e.classList.toggle('on',s===id);e.classList.toggle('left',k<idx)});cur=id;$('#'+id).scrollTop=0;const ap=$('.app');if(ap)ap.scrollLeft=0;
+function go(id){if(cur==='c1'&&id!=='c1'&&wkPend){wkPend=false;setTimeout(()=>autoWeek(true,450),0)}if(!['m1','m2','u1'].includes(id))viewY=false;if((id==='m1'||id==='m2')&&DK!==TODAY&&!viewY){DK=TODAY;D=getDay(DK);st.level=D.start||3}const idx=ALL.indexOf(id),ci=ALL.indexOf(cur);ALL.forEach((s,k)=>{const e=$('#'+s);e.classList.toggle('on',s===id);e.classList.toggle('left',k<idx)});cur=id;$('#'+id).scrollTop=0;const ap=$('.app');if(ap)ap.scrollLeft=0;
  if(id!=='u1')setMode(id[0]==='m'?'am':'pm');if(D.start)theme(D.start);
  if(id==='m1')initBat('#bat','#msg');
+ if(id==='m1'||id==='m2')renderYnav();
  if(id==='m2'){renderMini();renderTags('#tags','m');renderMenu('#menuA')}
  if(id==='n0'){$('#n0sub').textContent=DK===YEST?'补记昨天：那天一开始大概有几格电？':'今天一开始大概有几格电？';initBat('#batN','#msgN')}
  if(id==='n1'){renderDayseg();$('#n1 h2').firstChild.textContent=DK===YEST?'昨天做了哪些事 ':'今天做了哪些事 ';renderDid();renderTags('#tagsN','n')}
@@ -671,7 +680,7 @@ $$('#n1 [data-next]').forEach(b=>b.onclick=()=>go('n2'));
 $('#n2next').onclick=()=>go('n3');
 $('#n3next').onclick=finishNight;$('#n3skip').onclick=finishNight;
 $$('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
-$$('#sw button').forEach(b=>b.onclick=()=>{DK=TODAY;D=getDay(DK);if(b.dataset.m==='am')go(D.start?'m2':'m1');else enterNight()});
+$$('#sw button').forEach(b=>b.onclick=()=>{viewY=false;DK=TODAY;D=getDay(DK);if(b.dataset.m==='am')go(D.start?'m2':'m1');else enterNight()});
 $$('.mask').forEach(m=>m.addEventListener('click',e=>{if(e.target===m||e.target.hasAttribute('data-close'))m.classList.remove('on')}));
 function enterNight(){if(D.night)go('c1');else if(!D.start)go('n0');else go('n1')}
 
@@ -796,7 +805,7 @@ $('#wsave').onclick=async()=>{const bk=$('#wflip').classList.contains('back'),u=
 // 自动弹：周日晚上记完；或周日之后第一次打开用量页（上周记过≥1天）
 function autoWeek(sunday,dl){const mon=monOf(TODAY);if(!sunday)mon.setDate(mon.getDate()-7);const ks=weekKs(mon),seen=LS.get('wkSeen')||'';
  if(seen>=ks[0]||!ks.some(k=>hasRec(days[k])))return;LS.set('wkSeen',ks[0]);setTimeout(()=>openWeek(ks),dl!=null?dl:sunday?1400:600)}
-const BUILD='202610270824';function verChk(){if(location.protocol==='file:')return;fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/const BUILD='(\d+)'/);if(m&&m[1]!==BUILD&&!document.querySelector('.mask.on')&&sessionStorage.getItem('bmv')!==m[1]){sessionStorage.setItem('bmv',m[1]);location.replace(location.pathname+'?v='+m[1])}}).catch(()=>{})}
+const BUILD='202610270907';function verChk(){if(location.protocol==='file:')return;fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/const BUILD='(\d+)'/);if(m&&m[1]!==BUILD&&!document.querySelector('.mask.on')&&sessionStorage.getItem('bmv')!==m[1]){sessionStorage.setItem('bmv',m[1]);location.replace(location.pathname+'?v='+m[1])}}).catch(()=>{})}
 verChk();document.addEventListener('visibilitychange',()=>{if(!document.hidden)verChk()});
 /* ---------- 启动 ---------- */
 (function(){const y=days[YEST];st.tired=!!(y&&y.start!=null&&yOf(y)>y.start);
