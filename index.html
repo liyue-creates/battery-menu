@@ -228,6 +228,7 @@ body{-webkit-user-select:none;user-select:none}textarea,input{-webkit-user-selec
  <!-- 晚上 0：补问 X -->
  <section class="screen" id="n0">
   <div class="mid">
+  <div class="ynav" style="margin:0 0 4px"></div>
   <div style="margin:auto 0;padding-bottom:6vh">
    <h1 class="hello">晚上好呀，今天怎么样？</h1>
    <p class="sub" style="text-align:center" id="n0sub">今天一开始大概有几格电？</p>
@@ -240,6 +241,7 @@ body{-webkit-user-select:none;user-select:none}textarea,input{-webkit-user-selec
  <!-- 晚上 1：做了哪些事 -->
  <section class="screen" id="n1">
   <div class="mid">
+  <div class="ynav" style="margin:0 0 4px"></div>
   <button class="link back" id="n1back">← 上一步</button>
   <h1 class="hello" style="text-align:left">晚上好呀，今天怎么样？</h1>
   <div class="seg2 hand" id="dayseg"><button data-d="0">记今天</button><button data-d="1">补记昨天</button></div>
@@ -253,6 +255,7 @@ body{-webkit-user-select:none;user-select:none}textarea,input{-webkit-user-selec
  <!-- 晚上 2：用了几格 -->
  <section class="screen" id="n2">
   <div class="mid">
+  <div class="ynav" style="margin:0 0 4px"></div>
   <button class="link back" data-go="n1">← 上一步</button>
   <h1>今天用了几格电？</h1>
   <p class="sub">从左往右拖，拖到今天用掉的格数</p>
@@ -266,6 +269,7 @@ body{-webkit-user-select:none;user-select:none}textarea,input{-webkit-user-selec
  <!-- 晚上 3：打分 + 留言 -->
  <section class="screen" id="n3">
   <div class="mid">
+  <div class="ynav" style="margin:0 0 4px"></div>
   <button class="link back" data-go="n2">← 上一步</button>
   <h1>给今天打个分</h1>
   <div class="moods" id="moods" style="margin-top:14px"></div>
@@ -285,6 +289,7 @@ body{-webkit-user-select:none;user-select:none}textarea,input{-webkit-user-selec
  <!-- 卡片 -->
  <section class="screen" id="c1">
   <div class="mid">
+  <div class="ynav" style="margin:0 0 4px"></div>
   <h1>今日电量卡片</h1>
   <p class="sub">存下来，发给想告诉的人</p>
   <div class="cardbox"><canvas id="card" width="660" height="880" style="display:none"></canvas><img id="cardImg" alt="今日电量卡片" style="width:100%;border-radius:8px;display:block;filter:drop-shadow(3px 5px 0 rgba(74,63,53,.25));-webkit-touch-callout:default;-webkit-user-select:auto;user-select:auto"></div><p class="tiny" style="margin-top:8px">手机上长按卡片就能存</p>
@@ -369,8 +374,8 @@ function bolts(c,sz){sz=sz||12;let h='';const P='M6 0L1 9h4l-1 7 6-10H6l1-6z';fo
 
 function makeDrag(wrap,get,set,onEnd){let drag=false,R=null,raf=0,lv=0;
 function val(e){const r=R||wrap.getBoundingClientRect();const x=(e.clientX-r.left)/(r.width*300/340);return Math.max(0,Math.min(5,x*5*(300/272)-(14/272)*5))}
-wrap.addEventListener('pointerdown',e=>{drag=true;R=wrap.getBoundingClientRect();wrap.setPointerCapture(e.pointerId);set(val(e),false,true)});
-wrap.addEventListener('pointermove',e=>{if(!drag)return;lv=val(e);if(!raf)raf=requestAnimationFrame(()=>{raf=0;if(drag)set(lv,false)})});
+wrap.style.touchAction='none';wrap.addEventListener('pointerdown',e=>{e.preventDefault();drag=true;R=wrap.getBoundingClientRect();wrap.setPointerCapture(e.pointerId);set(val(e),false,true)});
+wrap.addEventListener('pointermove',e=>{if(!drag)return;set(val(e),false)});
 const up=e=>{if(!drag)return;drag=false;if(raf){cancelAnimationFrame(raf);raf=0}set(val(e),true);R=null;onEnd&&onEnd()};
 wrap.addEventListener('pointerup',up);wrap.addEventListener('pointercancel',up)}
 
@@ -410,7 +415,7 @@ const defaultY=d=>doneSum(d);
 const yOf=d=>d.actual!=null?d.actual:defaultY(d); // 估值
 const isEst=d=>d.actual==null;
 const hasRec=d=>!!d&&(d.start!=null||(d.done||[]).length>0||(d.mustDone||[]).length>0),hasE=d=>!!d&&d.start!=null;
-const sumText=(x,y)=>y==null?`今天 ${x} 格电`:`今天 ${x} 格电，用了 ${y} 格`;
+const sumText=(x,y)=>{const w=DK===YEST?'昨天':'今天';return y==null?`${w} ${x} 格电`:`${w} ${x} 格电，用了 ${y} 格`};
 function theme(l){const t=THEMES[ik(l)],r=document.documentElement.style;['--bg','--ink','--soft','--fill','--fill2','--card'].forEach((v,i)=>r.setProperty(v,t[i]));document.querySelector('meta[name=theme-color]').content=t[0]}
 let undoFn=null;function toast(t,u){const e=$('#toast');$('#toastT').textContent=t;undoFn=u||null;$('#undo').hidden=!u;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>{e.classList.remove('on');undoFn=null},u?4000:1800)}
 document.addEventListener('click',e=>{if(e.target.id==='undo'&&undoFn){const f=undoFn;undoFn=null;f();$('#toast').classList.remove('on');vib()}});
@@ -556,9 +561,9 @@ let fillT=null;function fillTo(n){clearInterval(fillT);let y=Y;const d=n>y?1:-1;
  const cont=x=>Math.max(0,Math.min(5,(x-UG.pad)/UG.c));
  function start(e){drag=true;R=w.getBoundingClientRect();w.setPointerCapture(e.pointerId);const x0=px(e);anc=(Y>=5&&x0>UG.body*.6)?x0-(Y-5)*UG.c:null;
   w.innerHTML=usedSVG(D.start,0).replace(/<g data-bolt[\s\S]*?<\/g><\/g>/g,'');ov=mkOv();paint(Math.min(Y,5),0);lastY=null;move(x0)}
- function move(x){const y=yRel(x);paint(y>5?5:cont(x),0);if(y!==lastY)$('#utext').textContent=sumText(D.start,y);lastY=y}
+ function move(x){const y=yRel(x);paint(y>5?5:cont(x),0);lastY=y}
  w.addEventListener('pointerdown',e=>{const b=e.target.closest('[data-bolt]');if(b){const y=5+(+b.dataset.bolt);vib();D.actual=y;D.manual=true;save();renderUsed(y);return}start(e)});
- w.addEventListener('pointermove',e=>{if(!drag)return;lx=px(e);if(!raf)raf=requestAnimationFrame(()=>{raf=0;if(drag)move(lx)})});
+ w.addEventListener('pointermove',e=>{if(!drag)return;move(px(e))});
  const up=e=>{if(!drag)return;drag=false;if(raf){cancelAnimationFrame(raf);raf=0}const y=yRel(px(e));R=null;paint(Math.min(5,y),200);
   setTimeout(()=>{if(drag)return;if(ov){ov.remove();ov=null}if(y!==Y)vib();D.actual=y;D.manual=true;save();renderUsed(y)},210)};
  w.addEventListener('pointerup',up);w.addEventListener('pointercancel',up)})();
@@ -658,14 +663,15 @@ function refreshReviewBtn(){$('#openReview').hidden=recKeys().length<2}
 const ALL=['m1','m2','n0','n1','n2','n3','c1','u1'];let cur=null,mode='am';
 let viewY=false;
 function renderYnav(){const t=viewY?'<b>正在看昨天</b> · 改好会自动存下 · <button class="lk" data-ytoday>回到今天 ›</button>':'<button class="lk" data-yest>‹ 昨天</button>';$$('.ynav').forEach(e=>e.innerHTML=t);
+ $$('#n0 h1.hello,#n1 h1.hello').forEach(h=>h.textContent=viewY?'晚上好呀，昨天怎么样？':'晚上好呀，今天怎么样？');$('#n2 h1').textContent=viewY?'昨天用了几格电？':'今天用了几格电？';$('#n3 h1').textContent=viewY?'给昨天打个分':'给今天打个分';
  $('#m1h').textContent=viewY?'昨天一开始大概有几格电？':'早上好呀，今天能量怎么样？';$('#mustH').textContent=viewY?'昨天必须做的事':'今天必须做的事';$('#warm2').style.display=viewY?'none':''}
-function toYest(on){viewY=on;DK=on?YEST:TODAY;D=getDay(DK);st.level=D.start||3;lastSnap=null;vib();go(D.start?'m2':'m1')}
+function toYest(on){const pm=cur&&cur[0]!=='m';viewY=on;DK=on?YEST:TODAY;D=getDay(DK);st.level=D.start||3;lastSnap=null;vib();if(!pm)go(D.start?'m2':'m1');else if(on)go(D.start?'n1':'n0');else enterNight()}
 document.addEventListener('click',e=>{if(e.target.closest('[data-yest]'))toYest(true);else if(e.target.closest('[data-ytoday]'))toYest(false)});
 function setMode(m){mode=m;$$('#sw button').forEach(b=>b.classList.toggle('on',b.dataset.m===m))}
-function go(id){if(cur==='c1'&&id!=='c1'&&wkPend){wkPend=false;setTimeout(()=>autoWeek(true,450),0)}if(!['m1','m2','u1'].includes(id))viewY=false;if((id==='m1'||id==='m2')&&DK!==TODAY&&!viewY){DK=TODAY;D=getDay(DK);st.level=D.start||3}const idx=ALL.indexOf(id),ci=ALL.indexOf(cur);ALL.forEach((s,k)=>{const e=$('#'+s);e.classList.toggle('on',s===id);e.classList.toggle('left',k<idx)});cur=id;$('#'+id).scrollTop=0;const ap=$('.app');if(ap)ap.scrollLeft=0;
+function go(id){if(id[0]==='n'||id==='c1')viewY=DK===YEST;if(cur==='c1'&&id!=='c1'&&wkPend){wkPend=false;setTimeout(()=>autoWeek(true,450),0)}if((id==='m1'||id==='m2')&&DK!==TODAY&&!viewY){DK=TODAY;D=getDay(DK);st.level=D.start||3}const idx=ALL.indexOf(id),ci=ALL.indexOf(cur);ALL.forEach((s,k)=>{const e=$('#'+s);e.classList.toggle('on',s===id);e.classList.toggle('left',k<idx)});cur=id;$('#'+id).scrollTop=0;const ap=$('.app');if(ap)ap.scrollLeft=0;
  if(id!=='u1')setMode(id[0]==='m'?'am':'pm');if(D.start)theme(D.start);
  if(id==='m1')initBat('#bat','#msg');
- if(id==='m1'||id==='m2')renderYnav();
+ if(id!=='u1')renderYnav();
  if(id==='m2'){renderMini();renderTags('#tags','m');renderMenu('#menuA')}
  if(id==='n0'){$('#n0sub').textContent=DK===YEST?'补记昨天：那天一开始大概有几格电？':'今天一开始大概有几格电？';initBat('#batN','#msgN')}
  if(id==='n1'){renderDayseg();$('#n1 h2').firstChild.textContent=DK===YEST?'昨天做了哪些事 ':'今天做了哪些事 ';renderDid();renderTags('#tagsN','n')}
@@ -680,7 +686,7 @@ $$('#n1 [data-next]').forEach(b=>b.onclick=()=>go('n2'));
 $('#n2next').onclick=()=>go('n3');
 $('#n3next').onclick=finishNight;$('#n3skip').onclick=finishNight;
 $$('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
-$$('#sw button').forEach(b=>b.onclick=()=>{viewY=false;DK=TODAY;D=getDay(DK);if(b.dataset.m==='am')go(D.start?'m2':'m1');else enterNight()});
+$$('#sw button').forEach(b=>b.onclick=()=>{DK=viewY?YEST:TODAY;D=getDay(DK);st.level=D.start||3;if(b.dataset.m==='am')go(D.start?'m2':'m1');else if(viewY)go(D.start?'n1':'n0');else enterNight()});
 $$('.mask').forEach(m=>m.addEventListener('click',e=>{if(e.target===m||e.target.hasAttribute('data-close'))m.classList.remove('on')}));
 function enterNight(){if(D.night)go('c1');else if(!D.start)go('n0');else go('n1')}
 
@@ -805,7 +811,7 @@ $('#wsave').onclick=async()=>{const bk=$('#wflip').classList.contains('back'),u=
 // 自动弹：周日晚上记完；或周日之后第一次打开用量页（上周记过≥1天）
 function autoWeek(sunday,dl){const mon=monOf(TODAY);if(!sunday)mon.setDate(mon.getDate()-7);const ks=weekKs(mon),seen=LS.get('wkSeen')||'';
  if(seen>=ks[0]||!ks.some(k=>hasRec(days[k])))return;LS.set('wkSeen',ks[0]);setTimeout(()=>openWeek(ks),dl!=null?dl:sunday?1400:600)}
-const BUILD='202610270907';function verChk(){if(location.protocol==='file:')return;fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/const BUILD='(\d+)'/);if(m&&m[1]!==BUILD&&!document.querySelector('.mask.on')&&sessionStorage.getItem('bmv')!==m[1]){sessionStorage.setItem('bmv',m[1]);location.replace(location.pathname+'?v='+m[1])}}).catch(()=>{})}
+const BUILD='202610282224';function verChk(){if(location.protocol==='file:')return;fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/const BUILD='(\d+)'/);if(m&&m[1]!==BUILD&&!document.querySelector('.mask.on')&&sessionStorage.getItem('bmv')!==m[1]){sessionStorage.setItem('bmv',m[1]);location.replace(location.pathname+'?v='+m[1])}}).catch(()=>{})}
 verChk();document.addEventListener('visibilitychange',()=>{if(!document.hidden)verChk()});
 /* ---------- 启动 ---------- */
 (function(){const y=days[YEST];st.tired=!!(y&&y.start!=null&&yOf(y)>y.start);
